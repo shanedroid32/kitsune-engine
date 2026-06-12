@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Kitsune.Core** — `CollisionLayer` bit flags and `Hitbox.Layer` / `Hitbox.CollidesWith` for collision filtering
+- **Kitsune.Core** — optional `layerMask` on `Scene` collision query methods
+- **Kitsune.Bridges.Platformer** — `TriggerSolid` for non-blocking `"solid"` overlaps
+- **PlatformerDemo** — walk-through trigger zone (player tints green while inside)
+
+### Changed
+
+- **Solid** — sets entity `Hitbox.Layer` to `CollisionLayer.Geometry` on add
+- **Actor** / **PlatformerBody** — movement and grounding queries use `CollisionLayer.Geometry` only
+
 ## [0.2.0] - 2026-06-12
 
 ### Added

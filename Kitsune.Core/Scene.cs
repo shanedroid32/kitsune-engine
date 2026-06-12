@@ -142,14 +142,15 @@ public class Scene
     /// </summary>
     /// <param name="source">The hitbox to test, attached to an entity in this scene.</param>
     /// <param name="tag">The tag to query.</param>
+    /// <param name="layerMask">Target layers to include; when <see langword="null"/>, uses <paramref name="source"/>'s <see cref="Hitbox.CollidesWith"/>.</param>
     /// <returns><see langword="true"/> when an overlap exists; otherwise <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="tag"/> is empty.</exception>
     /// <exception cref="InvalidOperationException">Thrown when <paramref name="source"/> is not attached to an entity in this scene.</exception>
-    public bool CollideCheck(Hitbox source, string tag)
+    public bool CollideCheck(Hitbox source, string tag, uint? layerMask = null)
     {
         ValidateCollisionSource(source, tag);
-        return CollideFirst(source, tag) is not null;
+        return CollideFirst(source, tag, layerMask) is not null;
     }
 
     /// <summary>
@@ -157,22 +158,24 @@ public class Scene
     /// </summary>
     /// <param name="source">The hitbox to test, attached to an entity in this scene.</param>
     /// <param name="tag">The tag to query.</param>
+    /// <param name="layerMask">Target layers to include; when <see langword="null"/>, uses <paramref name="source"/>'s <see cref="Hitbox.CollidesWith"/>.</param>
     /// <returns>The first overlapping entity in tag registration order, or <see langword="null"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="tag"/> is empty.</exception>
     /// <exception cref="InvalidOperationException">Thrown when <paramref name="source"/> is not attached to an entity in this scene.</exception>
-    public Entity? CollideFirst(Hitbox source, string tag)
+    public Entity? CollideFirst(Hitbox source, string tag, uint? layerMask = null)
     {
         ValidateCollisionSource(source, tag);
 
         var sourceEntity = source.Entity!;
+        var mask = layerMask ?? source.CollidesWith;
 
         foreach (var target in Tracker.GetEntities(tag))
         {
             if (target == sourceEntity)
                 continue;
 
-            if (OverlapsAnyHitbox(source, target))
+            if (OverlapsAnyHitbox(source, target, mask))
                 return target;
         }
 
@@ -184,22 +187,24 @@ public class Scene
     /// </summary>
     /// <param name="source">The hitbox to test, attached to an entity in this scene.</param>
     /// <param name="tag">The tag to query.</param>
+    /// <param name="layerMask">Target layers to include; when <see langword="null"/>, uses <paramref name="source"/>'s <see cref="Hitbox.CollidesWith"/>.</param>
     /// <returns>Overlapping entities in tag registration order.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="tag"/> is empty.</exception>
     /// <exception cref="InvalidOperationException">Thrown when <paramref name="source"/> is not attached to an entity in this scene.</exception>
-    public IEnumerable<Entity> CollideAll(Hitbox source, string tag)
+    public IEnumerable<Entity> CollideAll(Hitbox source, string tag, uint? layerMask = null)
     {
         ValidateCollisionSource(source, tag);
 
         var sourceEntity = source.Entity!;
+        var mask = layerMask ?? source.CollidesWith;
 
         foreach (var target in Tracker.GetEntities(tag))
         {
             if (target == sourceEntity)
                 continue;
 
-            if (OverlapsAnyHitbox(source, target))
+            if (OverlapsAnyHitbox(source, target, mask))
                 yield return target;
         }
     }
@@ -268,11 +273,17 @@ public class Scene
             throw new InvalidOperationException("Source hitbox must be attached to an entity in this scene.");
     }
 
-    private static bool OverlapsAnyHitbox(Hitbox source, Entity target)
+    private static bool OverlapsAnyHitbox(Hitbox source, Entity target, uint layerMask)
     {
         foreach (var component in target.Components)
         {
-            if (component is Hitbox targetHitbox && Hitbox.Overlaps(source, targetHitbox))
+            if (component is not Hitbox targetHitbox)
+                continue;
+
+            if ((layerMask & targetHitbox.Layer) == 0)
+                continue;
+
+            if (Hitbox.Overlaps(source, targetHitbox))
                 return true;
         }
 

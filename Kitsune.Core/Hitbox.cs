@@ -19,6 +19,17 @@ public sealed class Hitbox : Component
     public Vector2 Offset { get; set; }
 
     /// <summary>
+    /// The collision layer this hitbox belongs to. Defaults to <see cref="CollisionLayer.Geometry"/>.
+    /// </summary>
+    public uint Layer { get; set; } = CollisionLayer.Geometry;
+
+    /// <summary>
+    /// Target layers considered when this hitbox originates a collision query without an explicit mask.
+    /// Defaults to <see cref="CollisionLayer.All"/>.
+    /// </summary>
+    public uint CollidesWith { get; set; } = CollisionLayer.All;
+
+    /// <summary>
     /// Creates a hitbox with the given size.
     /// </summary>
     /// <param name="width">Hitbox width in pixels.</param>

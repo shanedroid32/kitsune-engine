@@ -86,10 +86,10 @@ public sealed class Actor : Component
             entity.Position += step;
             moved += 1f;
 
-            if (!scene.CollideCheck(hitbox, tag))
+            if (!scene.CollideCheck(hitbox, tag, CollisionLayer.Geometry))
                 continue;
 
-            var blocker = scene.CollideFirst(hitbox, tag);
+            var blocker = scene.CollideFirst(hitbox, tag, CollisionLayer.Geometry);
 
             entity.Position -= step;
             moved -= 1f;

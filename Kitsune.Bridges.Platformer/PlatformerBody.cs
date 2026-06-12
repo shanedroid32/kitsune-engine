@@ -156,7 +156,7 @@ public sealed class PlatformerBody : Component
         var entity = Entity!;
 
         entity.Position += new System.Numerics.Vector2(0f, 1f);
-        var ground = scene.CollideFirst(hitbox, Solid.Tag);
+        var ground = scene.CollideFirst(hitbox, Solid.Tag, CollisionLayer.Geometry);
         entity.Position -= new System.Numerics.Vector2(0f, 1f);
 
         if (ground is null)
@@ -182,7 +182,7 @@ public sealed class PlatformerBody : Component
         var entity = Entity!;
 
         entity.Position += new System.Numerics.Vector2(0f, 1f);
-        var grounded = scene.CollideCheck(hitbox, Solid.Tag);
+        var grounded = scene.CollideCheck(hitbox, Solid.Tag, CollisionLayer.Geometry);
         entity.Position -= new System.Numerics.Vector2(0f, 1f);
 
         return grounded;

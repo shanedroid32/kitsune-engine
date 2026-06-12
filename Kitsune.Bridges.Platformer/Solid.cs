@@ -15,8 +15,22 @@ public sealed class Solid : Component
     /// <inheritdoc />
     public override void Added()
     {
-        if (Entity?.Scene is not null)
+        if (Entity is null)
+            return;
+
+        ApplyLayer(Entity, CollisionLayer.Geometry);
+
+        if (Entity.Scene is not null)
             Entity.Scene.Tags.Register(Entity, Tag);
+    }
+
+    internal static void ApplyLayer(Entity entity, uint layer)
+    {
+        foreach (var component in entity.Components)
+        {
+            if (component is Hitbox hitbox)
+                hitbox.Layer = layer;
+        }
     }
 
     /// <inheritdoc />

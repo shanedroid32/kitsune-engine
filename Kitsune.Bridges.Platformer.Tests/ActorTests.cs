@@ -120,6 +120,20 @@ public class ActorTests
     }
 
     [Fact]
+    public void MoveX_PassesThroughTriggerSolid()
+    {
+        var scene = new Scene();
+        var (entity, actor, _) = AddActor(scene, new Vector2(0, 0));
+        AddTriggerWall(scene, new Vector2(16, 0), 32, 32);
+        scene.Begin();
+
+        var moved = actor.MoveX(32f);
+
+        Assert.Equal(32f, moved);
+        Assert.Equal(new Vector2(32, 0), entity.Position);
+    }
+
+    [Fact]
     public void MoveX_ThrowsWhenEntityHasNoHitbox()
     {
         var scene = new Scene();
@@ -150,5 +164,14 @@ public class ActorTests
         wall.Add(new Solid());
         scene.Add(wall);
         return wall;
+    }
+
+    private static Entity AddTriggerWall(Scene scene, Vector2 position, float width, float height)
+    {
+        var trigger = new Entity { Position = position };
+        trigger.Add(new Hitbox(width, height));
+        trigger.Add(new TriggerSolid());
+        scene.Add(trigger);
+        return trigger;
     }
 }

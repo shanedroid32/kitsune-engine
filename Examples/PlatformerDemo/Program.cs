@@ -55,6 +55,9 @@ sealed class PlatformerDemoApp : KitsuneApp
         // Walk-off ledge (coyote time — jump shortly after leaving the right edge).
         AddSolid(scene, new Vector2(80, 448), new Vector2(180, 20), new Color(0.42f, 0.44f, 0.52f, 1f));
 
+        // Trigger zone — walk through without blocking (player tints while inside).
+        AddTriggerZone(scene, new Vector2(300, 468), new Vector2(60, 32));
+
         // Elevated platforms on the right side of the gap.
         AddSolid(scene, new Vector2(420, 400), new Vector2(160, 20), new Color(0.40f, 0.43f, 0.50f, 1f));
         AddSolid(scene, new Vector2(620, 360), new Vector2(140, 20), new Color(0.38f, 0.41f, 0.48f, 1f));
@@ -76,7 +79,9 @@ sealed class PlatformerDemoApp : KitsuneApp
             JumpSpeed = 620f,
             DeltaTimeSource = () => DeltaTime,
         });
-        player.Add(new RectSprite(32, 32, new Color(0.95f, 0.55f, 0.25f, 1f)));
+        var playerSprite = new RectSprite(32, 32, new Color(0.95f, 0.55f, 0.25f, 1f));
+        player.Add(playerSprite);
+        player.Add(new TriggerSensor(playerSprite));
         scene.Add(player);
         scene.Tags.Register(player, "player");
 
@@ -117,6 +122,50 @@ sealed class PlatformerDemoApp : KitsuneApp
         wall.Add(new RectSprite(size.X, size.Y, color));
         scene.Add(wall);
     }
+
+    private static void AddTriggerZone(Scene scene, Vector2 position, Vector2 size)
+    {
+        var zone = new Entity
+        {
+            Position = position,
+            Depth = 0,
+        };
+        zone.Add(new Hitbox(size.X, size.Y));
+        zone.Add(new TriggerSolid());
+        zone.Add(new RectSprite(size.X, size.Y, new Color(0.35f, 0.85f, 0.45f, 0.35f)));
+        scene.Add(zone);
+    }
+}
+
+/// <summary>
+/// Tints the player sprite while overlapping a <see cref="TriggerSolid"/>.
+/// </summary>
+sealed class TriggerSensor(RectSprite sprite) : Component
+{
+    private static readonly Color Normal = new(0.95f, 0.55f, 0.25f, 1f);
+    private static readonly Color InTrigger = new(0.55f, 0.95f, 0.45f, 1f);
+
+    public override void Update()
+    {
+        if (Entity?.Scene is null)
+            return;
+
+        Hitbox? hitbox = null;
+        foreach (var component in Entity.Components)
+        {
+            if (component is Hitbox box)
+            {
+                hitbox = box;
+                break;
+            }
+        }
+
+        if (hitbox is null)
+            return;
+
+        var inside = Entity.Scene.CollideCheck(hitbox, Solid.Tag, CollisionLayer.Trigger);
+        sprite.Color = inside ? InTrigger : Normal;
+    }
 }
 
 /// <summary>
@@ -124,12 +173,14 @@ sealed class PlatformerDemoApp : KitsuneApp
 /// </summary>
 sealed class RectSprite(float width, float height, Color color) : Component
 {
+    public Color Color { get; set; } = color;
+
     public override void Render(Batcher batcher)
     {
         if (Entity is null)
             return;
 
-        batcher.Rect(Entity.WorldPosition, new Vector2(width, height), color);
+        batcher.Rect(Entity.WorldPosition, new Vector2(width, height), Color);
     }
 }
 

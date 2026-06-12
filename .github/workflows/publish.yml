@@ -38,7 +38,19 @@ jobs:
           user: ${{ secrets.NUGET_USER }}
 
       - name: Push to NuGet
-        run: dotnet nuget push ./artifacts/packages/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        shell: pwsh
+        run: |
+          $apiKey = '${{ steps.login.outputs.NUGET_API_KEY }}'
+          $source = 'https://api.nuget.org/v3/index.json'
+          Get-ChildItem ./artifacts/packages/*.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName --api-key $apiKey --source $source --skip-duplicate
+          }
 
       - name: Push symbols to NuGet
-        run: dotnet nuget push ./artifacts/packages/*.snupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        shell: pwsh
+        run: |
+          $apiKey = '${{ steps.login.outputs.NUGET_API_KEY }}'
+          $source = 'https://api.nuget.org/v3/index.json'
+          Get-ChildItem ./artifacts/packages/*.snupkg | ForEach-Object {
+            dotnet nuget push $_.FullName --api-key $apiKey --source $source --skip-duplicate
+          }

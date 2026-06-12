@@ -75,6 +75,9 @@ public sealed class Actor : Component
     public float MoveX(float pixels, string tag = Solid.Tag, Action<Entity>? onCollide = null) =>
         MoveAxis(pixels, new Vector2(1f, 0f), tag, onCollide);
 
+    internal float MoveXFromKinematic(float pixels, Entity kinematicSolid, Action<Entity>? onCollide = null) =>
+        MoveAxis(pixels, new Vector2(1f, 0f), Solid.Tag, onCollide, kinematicSolid);
+
     /// <summary>
     /// Moves the owning entity vertically in 1px steps, stopping at the first blocking solid.
     /// </summary>
@@ -85,6 +88,9 @@ public sealed class Actor : Component
     /// <exception cref="InvalidOperationException">Thrown when the actor is not attached to an entity with a hitbox in a scene.</exception>
     public float MoveY(float pixels, string tag = Solid.Tag, Action<Entity>? onCollide = null) =>
         MoveAxis(pixels, new Vector2(0f, 1f), tag, onCollide);
+
+    internal float MoveYFromKinematic(float pixels, Entity kinematicSolid, Action<Entity>? onCollide = null) =>
+        MoveAxis(pixels, new Vector2(0f, 1f), Solid.Tag, onCollide, kinematicSolid);
 
     /// <summary>
     /// After an upward <see cref="MoveY"/> is blocked, tries a one-pixel left nudge then a one-pixel right nudge.
@@ -121,7 +127,7 @@ public sealed class Actor : Component
         return false;
     }
 
-    private float MoveAxis(float pixels, Vector2 axis, string tag, Action<Entity>? onCollide)
+    private float MoveAxis(float pixels, Vector2 axis, string tag, Action<Entity>? onCollide, Entity? ignoreSolid = null)
     {
         var hitbox = RequireHitbox();
         var scene = RequireScene();
@@ -143,7 +149,7 @@ public sealed class Actor : Component
             moved += 1f;
 
             var blocker = FindFirstBlockingSolid(hitbox, tag, step);
-            if (blocker is null)
+            if (blocker is null || blocker == ignoreSolid)
                 continue;
 
             entity.Position -= step;

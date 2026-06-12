@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Actor** — `IsRiding` (probe-only), `OnSquish`, and `Squish` for kinematic resolution (ADR-0024)
+- **KinematicSolid** — solid-authoritative push/carry/squish after each `Step` (ADR-0024)
+- **PlatformerBody** — `LiftMomentumStorageFrames` for horizontal grace-frame momentum after jump (default 6)
+
+### Changed
+
+- **PlatformerBody** — kinematic carry removed; riding actors move with `KinematicSolid.Step`
 
 ### Fixed
 

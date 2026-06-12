@@ -6,9 +6,9 @@ namespace Kitsune.Bridges.Platformer;
 /// Vertical platformer physics state — gravity, jumping, and grounded tracking via <see cref="Actor"/>.
 /// </summary>
 /// <remarks>
-/// When grounded on a <see cref="KinematicSolid"/>, applies that platform's <see cref="KinematicSolid.FrameDisplacement"/>
-/// after vertical simulation so the entity rides moving solids. Requires the platform entity to update before this body
-/// on the same frame (see <see cref="KinematicSolid"/> remarks).
+/// Grounded actors on <see cref="KinematicSolid"/> are carried by solid-authoritative resolution when the
+/// platform <see cref="KinematicSolid.Step"/> runs. Register moving solid entities before actors on the same frame
+/// (see <see cref="KinematicSolid"/> remarks).
 /// </remarks>
 public sealed class PlatformerBody : Component
 {
@@ -45,6 +45,12 @@ public sealed class PlatformerBody : Component
     public int JumpBufferFramesRemaining { get; private set; }
 
     /// <summary>
+    /// Airborne frames to apply horizontal platform velocity after jumping from a <see cref="KinematicSolid"/>.
+    /// Default matches coyote/buffer scale (~100ms at 60fps).
+    /// </summary>
+    public int LiftMomentumStorageFrames { get; set; } = 6;
+
+    /// <summary>
     /// When <see langword="true"/> on the next simulation step, starts or buffers a jump.
     /// Buffered jumps fire when grounded or within coyote time before the buffer expires.
     /// </summary>
@@ -72,7 +78,8 @@ public sealed class PlatformerBody : Component
     public bool WasGrounded { get; private set; }
 
     private float _verticalVelocity;
-    private KinematicSolid? _lastRiddenKinematic;
+    private float _storedHorizontalVelocity;
+    private int _liftMomentumFramesRemaining;
 
     /// <inheritdoc />
     public override void Update()
@@ -90,6 +97,12 @@ public sealed class PlatformerBody : Component
         var actor = RequireActor();
 
         WasGrounded = IsGrounded;
+
+        if (!IsGrounded && _liftMomentumFramesRemaining > 0 && deltaTime > 0f)
+        {
+            actor.MoveX(_storedHorizontalVelocity * deltaTime);
+            _liftMomentumFramesRemaining--;
+        }
 
         var canJump = IsGrounded || CoyoteFramesRemaining > 0;
         var jumpedThisFrame = false;
@@ -135,7 +148,7 @@ public sealed class PlatformerBody : Component
 
         if (IsGrounded)
         {
-            ApplyPlatformCarry();
+            _liftMomentumFramesRemaining = 0;
             CoyoteFramesRemaining = 0;
         }
         else if (WasGrounded && !jumpedThisFrame)
@@ -164,7 +177,8 @@ public sealed class PlatformerBody : Component
         if (deltaTime <= 0f || !WasGrounded)
             return;
 
-        var kinematic = ResolveRiddenKinematic();
+        var actor = RequireActor();
+        var kinematic = ResolveRiddenKinematic(actor);
         if (kinematic is null)
             return;
 
@@ -174,67 +188,49 @@ public sealed class PlatformerBody : Component
 
         var velocity = displacement / deltaTime;
         _verticalVelocity += velocity.Y;
-        RequireActor().MoveX(displacement.X);
-        _lastRiddenKinematic = null;
+        actor.MoveX(displacement.X);
+
+        if (LiftMomentumStorageFrames > 0 && velocity.X != 0f)
+        {
+            _storedHorizontalVelocity = velocity.X;
+            _liftMomentumFramesRemaining = LiftMomentumStorageFrames;
+        }
     }
 
-    private KinematicSolid? ResolveRiddenKinematic()
+    private static KinematicSolid? ResolveRiddenKinematic(Actor actor)
     {
-        if (_lastRiddenKinematic is not null)
-            return _lastRiddenKinematic;
+        var entity = actor.Entity;
+        if (entity?.Scene is null)
+            return null;
 
-        var hitbox = RequireHitbox();
-        var scene = RequireScene();
-        var entity = Entity!;
+        Hitbox? hitbox = null;
+        foreach (var component in entity.Components)
+        {
+            if (component is Hitbox found)
+            {
+                hitbox = found;
+                break;
+            }
+        }
+
+        if (hitbox is null)
+            return null;
 
         entity.Position += new System.Numerics.Vector2(0f, 1f);
         var ground = DirectionalSolidCollision.FindFirstBlocking(
-            scene, entity, hitbox, Solid.Tag, new System.Numerics.Vector2(0f, 1f));
+            entity.Scene, entity, hitbox, Solid.Tag, new System.Numerics.Vector2(0f, 1f));
         entity.Position -= new System.Numerics.Vector2(0f, 1f);
 
         if (ground is null)
             return null;
 
-        foreach (var component in ground.Components)
+        foreach (var groundComponent in ground.Components)
         {
-            if (component is KinematicSolid kinematic)
+            if (groundComponent is KinematicSolid kinematic)
                 return kinematic;
         }
 
         return null;
-    }
-
-    private void ApplyPlatformCarry()
-    {
-        var hitbox = RequireHitbox();
-        var scene = RequireScene();
-        var entity = Entity!;
-
-        entity.Position += new System.Numerics.Vector2(0f, 1f);
-        var ground = DirectionalSolidCollision.FindFirstBlocking(
-            scene, entity, hitbox, Solid.Tag, new System.Numerics.Vector2(0f, 1f));
-        entity.Position -= new System.Numerics.Vector2(0f, 1f);
-
-        if (ground is null)
-        {
-            _lastRiddenKinematic = null;
-            return;
-        }
-
-        _lastRiddenKinematic = null;
-
-        foreach (var component in ground.Components)
-        {
-            if (component is not KinematicSolid kinematic)
-                continue;
-
-            _lastRiddenKinematic = kinematic;
-            var delta = kinematic.FrameDisplacement;
-            if (delta != System.Numerics.Vector2.Zero)
-                entity.Position += delta;
-
-            return;
-        }
     }
 
     private bool ProbeGrounded(Actor actor)

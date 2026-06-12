@@ -280,10 +280,8 @@ public class PlatformerBodyTests
         var startX = player.Position.X;
 
         mover.Step(1f / 60f);
-        body.Simulate(1f / 60f);
 
         Assert.Equal(startX + 1f, player.Position.X);
-        Assert.True(body.IsGrounded);
     }
 
     [Fact]
@@ -400,6 +398,85 @@ public class PlatformerBodyTests
     }
 
     [Fact]
+    public void Simulate_LiftMomentumStorage_ExtendsHorizontalTravel()
+    {
+        var withStorage = MeasureAirborneHorizontalTravel(liftMomentumStorageFrames: 6);
+        var withoutStorage = MeasureAirborneHorizontalTravel(liftMomentumStorageFrames: 0);
+
+        Assert.True(withStorage > withoutStorage);
+    }
+
+    [Fact]
+    public void Simulate_LiftMomentumStorage_ExpiresAfterConfiguredFrames()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(60, 48), Speed = 60f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var (player, body, _) = AddBody(scene, new Vector2(16, 16));
+        body.LiftMomentumStorageFrames = 3;
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        mover.Step(1f / 60f);
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        var xAfterJump = player.Position.X;
+        for (var i = 0; i < 3; i++)
+            body.Simulate(1f / 60f);
+
+        var xAfterStorage = player.Position.X;
+        var xBeforeExtraFrames = xAfterStorage;
+
+        for (var i = 0; i < 5; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.True(xAfterStorage > xAfterJump);
+        Assert.Equal(xBeforeExtraFrames, player.Position.X);
+    }
+
+    [Fact]
+    public void Simulate_LiftMomentumStorage_BlockedByWall()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(60, 48), Speed = 60f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var wall = new Entity { Position = new Vector2(32, 0) };
+        wall.Add(new Hitbox(8, 64));
+        wall.Add(new Solid());
+        scene.Add(wall);
+
+        var (player, body, _) = AddBody(scene, new Vector2(0, 16));
+        body.LiftMomentumStorageFrames = 6;
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        mover.Step(1f / 60f);
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        var xAfterJump = player.Position.X;
+        for (var i = 0; i < 6; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.Equal(xAfterJump, player.Position.X);
+    }
+
+    [Fact]
     public void Simulate_LiftMomentum_HorizontalBlockedByWall()
     {
         var scene = new Scene();
@@ -489,6 +566,34 @@ public class PlatformerBodyTests
         floor.Add(new Hitbox(width, height));
         floor.Add(new Solid());
         scene.Add(floor);
+    }
+
+    private static float MeasureAirborneHorizontalTravel(int liftMomentumStorageFrames)
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(60, 48), Speed = 60f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var (player, body, _) = AddBody(scene, new Vector2(16, 16));
+        body.LiftMomentumStorageFrames = liftMomentumStorageFrames;
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        mover.Step(1f / 60f);
+        var xBefore = player.Position.X;
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        for (var i = 0; i < 8; i++)
+            body.Simulate(1f / 60f);
+
+        return player.Position.X - xBefore;
     }
 
     private static float MeasureFirstJumpFrameY(bool withPlatformStep)

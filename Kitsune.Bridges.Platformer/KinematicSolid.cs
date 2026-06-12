@@ -14,6 +14,10 @@ namespace Kitsune.Bridges.Platformer;
 /// should collide with them so <see cref="Update"/> advances the platform before
 /// <see cref="Actor"/> / <see cref="PlatformerBody"/> run on the same frame.
 /// </para>
+/// <para>
+/// Each <see cref="Step"/> uses solid-authoritative resolution: precompute riders, move the solid,
+/// push overlapping actors, carry riders, and squish when displacement cannot be resolved.
+/// </para>
 /// </remarks>
 public sealed class KinematicSolid : Component
 {
@@ -34,7 +38,7 @@ public sealed class KinematicSolid : Component
 
     /// <summary>
     /// World-space displacement applied by the most recent <see cref="Step"/> call.
-    /// Read by <see cref="PlatformerBody"/> to carry grounded actors on the same frame.
+    /// Read by <see cref="PlatformerBody"/> for lift momentum at jump.
     /// </summary>
     public Vector2 FrameDisplacement { get; private set; }
 
@@ -71,6 +75,12 @@ public sealed class KinematicSolid : Component
         if (Entity is null || !_initialized || Speed <= 0f || deltaTime <= 0f)
             return;
 
+        var scene = Entity.Scene;
+        if (scene is null)
+            return;
+
+        var riders = KinematicActorResolution.CollectRiders(scene, Entity);
+
         var before = Entity.Position;
         var current = before;
         var toTarget = _targetPosition - current;
@@ -94,6 +104,9 @@ public sealed class KinematicSolid : Component
         }
 
         FrameDisplacement = Entity.Position - before;
+
+        if (FrameDisplacement != Vector2.Zero)
+            KinematicActorResolution.ResolveAfterMove(scene, Entity, FrameDisplacement, riders);
     }
 
     private void SwapEndpoints()

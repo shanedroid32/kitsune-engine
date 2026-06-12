@@ -29,7 +29,19 @@ public sealed class PlatformerBody : Component
     public int CoyoteFramesRemaining { get; private set; }
 
     /// <summary>
-    /// When <see langword="true"/> on the next simulation step, starts a jump if grounded or within coyote time.
+    /// Grace period in frames to remember an airborne jump press so the jump fires on the next
+    /// grounded or coyote-qualified frame. Default matches common 60fps platformer feel (~100ms).
+    /// </summary>
+    public int JumpBufferFrames { get; set; } = 6;
+
+    /// <summary>
+    /// Remaining jump-buffer frames after the last simulation step; zero when inactive.
+    /// </summary>
+    public int JumpBufferFramesRemaining { get; private set; }
+
+    /// <summary>
+    /// When <see langword="true"/> on the next simulation step, starts or buffers a jump.
+    /// Buffered jumps fire when grounded or within coyote time before the buffer expires.
     /// </summary>
     public bool JumpRequested { get; set; }
 
@@ -70,12 +82,19 @@ public sealed class PlatformerBody : Component
         var canJump = IsGrounded || CoyoteFramesRemaining > 0;
         var jumpedThisFrame = false;
 
-        if (JumpRequested && canJump)
+        if (JumpRequested)
         {
-            _verticalVelocity = -JumpSpeed;
-            JumpRequested = false;
-            CoyoteFramesRemaining = 0;
-            jumpedThisFrame = true;
+            if (canJump)
+                jumpedThisFrame = StartJump();
+            else
+            {
+                JumpBufferFramesRemaining = JumpBufferFrames;
+                JumpRequested = false;
+            }
+        }
+        else if (JumpBufferFramesRemaining > 0 && canJump)
+        {
+            jumpedThisFrame = StartJump();
         }
 
         _verticalVelocity += Gravity * deltaTime;
@@ -98,6 +117,18 @@ public sealed class PlatformerBody : Component
             CoyoteFramesRemaining = CoyoteTimeFrames;
         else if (CoyoteFramesRemaining > 0)
             CoyoteFramesRemaining--;
+
+        if (JumpBufferFramesRemaining > 0 && !jumpedThisFrame)
+            JumpBufferFramesRemaining--;
+    }
+
+    private bool StartJump()
+    {
+        _verticalVelocity = -JumpSpeed;
+        JumpRequested = false;
+        CoyoteFramesRemaining = 0;
+        JumpBufferFramesRemaining = 0;
+        return true;
     }
 
     private bool ProbeGrounded(Actor actor)

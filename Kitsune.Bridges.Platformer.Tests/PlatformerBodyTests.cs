@@ -146,6 +146,120 @@ public class PlatformerBodyTests
     }
 
     [Fact]
+    public void Simulate_JumpBufferFiresOnLanding()
+    {
+        var scene = new Scene();
+        var (entity, body, _) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 64, 32);
+        body.JumpBufferFrames = 90;
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+        Assert.False(body.IsGrounded);
+
+        var peakY = entity.Position.Y;
+        while (entity.Position.Y <= peakY)
+        {
+            body.Simulate(1f / 60f);
+            peakY = MathF.Min(peakY, entity.Position.Y);
+        }
+
+        Assert.False(body.IsGrounded);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+        Assert.True(body.JumpBufferFramesRemaining > 0);
+        Assert.False(body.IsGrounded);
+
+        while (!body.IsGrounded)
+            body.Simulate(1f / 60f);
+
+        Assert.True(body.IsGrounded);
+        var landY = entity.Position.Y;
+
+        body.Simulate(1f / 60f);
+
+        Assert.True(entity.Position.Y < landY);
+        Assert.False(body.IsGrounded);
+        Assert.Equal(0, body.JumpBufferFramesRemaining);
+    }
+
+    [Fact]
+    public void Simulate_JumpBufferExpiresBeforeLateLanding()
+    {
+        var scene = new Scene();
+        var (entity, body, _) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 64, 32);
+        body.JumpBufferFrames = 2;
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+        Assert.True(body.JumpBufferFramesRemaining > 0);
+
+        for (var i = 0; i < body.JumpBufferFrames + 2; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.Equal(0, body.JumpBufferFramesRemaining);
+        Assert.False(body.IsGrounded);
+
+        while (!body.IsGrounded)
+            body.Simulate(1f / 60f);
+
+        var landY = entity.Position.Y;
+        body.Simulate(1f / 60f);
+
+        Assert.Equal(landY, entity.Position.Y);
+        Assert.True(body.IsGrounded);
+    }
+
+    [Fact]
+    public void Simulate_JumpBufferDoesNotDoubleJumpInAir()
+    {
+        var scene = new Scene();
+        var (entity, body, _) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 64, 32);
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+        Assert.False(body.IsGrounded);
+
+        var peakY = entity.Position.Y;
+        while (entity.Position.Y <= peakY)
+        {
+            body.Simulate(1f / 60f);
+            peakY = MathF.Min(peakY, entity.Position.Y);
+        }
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        Assert.False(body.IsGrounded);
+        Assert.True(body.JumpBufferFramesRemaining > 0);
+
+        var yAfterBuffer = entity.Position.Y;
+        for (var i = 0; i < 3; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.False(body.IsGrounded);
+        Assert.True(entity.Position.Y > yAfterBuffer);
+    }
+
+    [Fact]
     public void Simulate_JumpClearsGroundBriefly()
     {
         var scene = new Scene();

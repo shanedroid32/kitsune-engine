@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **PlatformerBody** — snappier default gravity/jump speeds for platformer feel
 - **CoreDemo** — faster walk speed, lower platform, tuned jump to reach the elevated platform
+- **CoreDemo** — higher jump arc (`JumpSpeed` 620, `Gravity` 950)
 - **PlatformerBody** — airborne while rising (`IsGrounded` false when moving up)
 - **CoreDemo** — WASD + Space/W controls (replaces arrow keys)
 - **CoreDemo** — player movement uses Platformer Bridge `Actor`/`Solid` instead of inline collision logic

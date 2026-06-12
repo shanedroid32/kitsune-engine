@@ -10,12 +10,12 @@ public sealed class PlatformerBody : Component
     /// <summary>
     /// Downward acceleration in pixels per second squared.
     /// </summary>
-    public float Gravity { get; set; } = 1100f;
+    public float Gravity { get; set; } = 1000f;
 
     /// <summary>
     /// Initial upward speed in pixels per second when a jump starts.
     /// </summary>
-    public float JumpSpeed { get; set; } = 480f;
+    public float JumpSpeed { get; set; } = 540f;
 
     /// <summary>
     /// Grace period in frames after leaving the ground (without jumping) during which

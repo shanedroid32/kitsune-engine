@@ -58,8 +58,8 @@ sealed class CoreDemoApp : KitsuneApp
         player.Add(new WasdDriver());
         player.Add(new PlatformerBody
         {
-            Gravity = 1100f,
-            JumpSpeed = 500f,
+            Gravity = 950f,
+            JumpSpeed = 620f,
             DeltaTimeSource = () => DeltaTime,
         });
         player.Add(new RectSprite(32, 32, new Color(0.95f, 0.55f, 0.25f, 1f)));

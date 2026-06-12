@@ -6,4 +6,5 @@
   <Project Path="Kitsune.Bridges.Platformer.Tests/Kitsune.Bridges.Platformer.Tests.csproj" />
   <Project Path="Examples/HelloWorld/HelloWorld.csproj" />
   <Project Path="Examples/CoreDemo/CoreDemo.csproj" />
+  <Project Path="Examples/PlatformerDemo/PlatformerDemo.csproj" />
 </Solution>

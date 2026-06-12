@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **PlatformerBody** — jump buffer (`JumpBufferFrames`, `JumpBufferFramesRemaining`)
 - **Actor** — `TryCeilingCornerNudge` for one-pixel left/right ceiling corner correction
 - **PlatformerBody** — ceiling corner nudge during upward solid collision while jumping
+- **Examples/PlatformerDemo** — runnable Platformer Bridge shell (floor, boundaries, WASD player)
 
 ### Changed
 

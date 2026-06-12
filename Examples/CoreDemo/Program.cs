@@ -55,6 +55,8 @@ sealed class CoreDemoApp : KitsuneApp
         };
         player.Add(new Hitbox(32, 32));
         player.Add(new Actor());
+        var body = new PlatformerBody { DeltaTimeSource = () => DeltaTime };
+        player.Add(body);
         player.Add(new ArrowKeyDriver());
         player.Add(new RectSprite(32, 32, new Color(0.95f, 0.55f, 0.25f, 1f)));
         scene.Add(player);
@@ -108,7 +110,7 @@ sealed class RectSprite(float width, float height, Color color) : Component
 }
 
 /// <summary>
-/// Reads arrow keys and drives <see cref="Actor"/> movement for the demo.
+/// Reads arrow keys — horizontal <see cref="Actor"/> movement and jump requests on <see cref="PlatformerBody"/>.
 /// </summary>
 sealed class ArrowKeyDriver : Component
 {
@@ -119,40 +121,32 @@ sealed class ArrowKeyDriver : Component
         if (Entity is null || CoreDemoApp.GameInput is null)
             return;
 
-        var actor = FindActor();
-        if (actor is null)
+        var actor = FindComponent<Actor>();
+        var body = FindComponent<PlatformerBody>();
+        if (actor is null || body is null)
             return;
 
         var keyboard = CoreDemoApp.GameInput.Keyboard;
-        var move = Vector2.Zero;
 
+        if (keyboard.Pressed(Keys.Up) || keyboard.Pressed(Keys.Space))
+            body.JumpRequested = true;
+
+        var moveX = 0f;
         if (keyboard.Down(Keys.Left))
-            move.X -= 1f;
+            moveX -= 1f;
         if (keyboard.Down(Keys.Right))
-            move.X += 1f;
-        if (keyboard.Down(Keys.Up))
-            move.Y -= 1f;
-        if (keyboard.Down(Keys.Down))
-            move.Y += 1f;
+            moveX += 1f;
 
-        if (move == Vector2.Zero)
-            return;
-
-        if (move.LengthSquared() > 1f)
-            move = Vector2.Normalize(move);
-
-        move *= Speed * CoreDemoApp.DeltaTime;
-
-        actor.MoveX(move.X);
-        actor.MoveY(move.Y);
+        if (moveX != 0f)
+            actor.MoveX(moveX * Speed * CoreDemoApp.DeltaTime);
     }
 
-    private Actor? FindActor()
+    private T? FindComponent<T>() where T : Component
     {
         foreach (var component in Entity!.Components)
         {
-            if (component is Actor actor)
-                return actor;
+            if (component is T match)
+                return match;
         }
 
         return null;

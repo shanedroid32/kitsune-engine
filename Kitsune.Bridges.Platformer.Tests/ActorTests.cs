@@ -134,6 +134,99 @@ public class ActorTests
     }
 
     [Fact]
+    public void IsRiding_TrueWhenStandingOnKinematicSolid()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(64, 32));
+        platform.Add(new Solid());
+        platform.Add(new KinematicSolid { EndPosition = new Vector2(60, 48) });
+        scene.Add(platform);
+
+        var (_, actor, _) = AddActor(scene, new Vector2(16, 16));
+        scene.Begin();
+
+        Assert.True(actor.IsRiding(platform));
+    }
+
+    [Fact]
+    public void IsRiding_FalseWhenAirborneAbovePlatform()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(64, 32));
+        platform.Add(new Solid());
+        platform.Add(new KinematicSolid { EndPosition = new Vector2(60, 48) });
+        scene.Add(platform);
+
+        var (_, actor, _) = AddActor(scene, new Vector2(16, 0));
+        scene.Begin();
+
+        Assert.False(actor.IsRiding(platform));
+    }
+
+    [Fact]
+    public void IsRiding_FalseWhenBelowOneWayPlatform()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 32) };
+        platform.Add(new Hitbox(64, 8));
+        platform.Add(new OneWaySolid());
+        scene.Add(platform);
+
+        var (_, actor, _) = AddActor(scene, new Vector2(16, 40));
+        scene.Begin();
+
+        Assert.False(actor.IsRiding(platform));
+    }
+
+    [Fact]
+    public void IsRiding_FalseOnJumpThroughWhenDropThroughRequested()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 32) };
+        platform.Add(new Hitbox(64, 16));
+        platform.Add(new JumpThroughSolid());
+        scene.Add(platform);
+
+        var entity = new Entity { Position = new Vector2(16, 0) };
+        var hitbox = new Hitbox(32, 32);
+        var actor = new Actor();
+        var body = new PlatformerBody { DropThroughRequested = true };
+        entity.Add(hitbox);
+        entity.Add(actor);
+        entity.Add(body);
+        scene.Add(entity);
+        scene.Begin();
+
+        Assert.False(actor.IsRiding(platform));
+    }
+
+    [Fact]
+    public void Squish_RemovesEntityWhenUnhandled()
+    {
+        var scene = new Scene();
+        var (entity, actor, _) = AddActor(scene, new Vector2(0, 0));
+        scene.Begin();
+
+        Assert.False(actor.Squish());
+        Assert.DoesNotContain(entity, scene.Entities);
+    }
+
+    [Fact]
+    public void Squish_SkipsRemoveWhenHandlerReturnsTrue()
+    {
+        var scene = new Scene();
+        var (entity, actor, _) = AddActor(scene, new Vector2(0, 0));
+        scene.Begin();
+
+        actor.OnSquish = () => true;
+
+        Assert.True(actor.Squish());
+        Assert.Contains(entity, scene.Entities);
+    }
+
+    [Fact]
     public void MoveX_ThrowsWhenEntityHasNoHitbox()
     {
         var scene = new Scene();

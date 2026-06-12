@@ -9,6 +9,62 @@ namespace Kitsune.Bridges.Platformer;
 public sealed class Actor : Component
 {
     /// <summary>
+    /// Optional handler invoked when kinematic resolution traps this actor.
+    /// Return <see langword="true"/> if squish was handled; otherwise the entity is removed from the scene.
+    /// </summary>
+    public Func<bool>? OnSquish { get; set; }
+
+    /// <summary>
+    /// Whether this actor is riding the given solid — resting on its top surface per downward probe
+    /// and directional-solid rules.
+    /// </summary>
+    /// <param name="solid">The solid entity to test (typically a <see cref="KinematicSolid"/> owner).</param>
+    /// <returns><see langword="true"/> when a downward probe finds the given solid as the blocking surface.</returns>
+    public bool IsRiding(Entity solid)
+    {
+        ArgumentNullException.ThrowIfNull(solid);
+
+        var hitbox = RequireHitbox();
+        var scene = RequireScene();
+        var entity = Entity!;
+
+        entity.Position += new Vector2(0f, 1f);
+        var ground = DirectionalSolidCollision.FindFirstBlocking(
+            scene, entity, hitbox, Solid.Tag, new Vector2(0f, 1f));
+        entity.Position -= new Vector2(0f, 1f);
+
+        return ground == solid;
+    }
+
+    /// <summary>
+    /// Whether this actor is riding the given kinematic solid.
+    /// </summary>
+    /// <param name="kinematic">The kinematic solid component to test.</param>
+    /// <returns><see langword="true"/> when <see cref="IsRiding(Entity)"/> is true for its entity.</returns>
+    public bool IsRiding(KinematicSolid kinematic)
+    {
+        ArgumentNullException.ThrowIfNull(kinematic);
+
+        return kinematic.Entity is not null && IsRiding(kinematic.Entity);
+    }
+
+    /// <summary>
+    /// Handles squish from kinematic resolution.
+    /// </summary>
+    /// <returns><see langword="true"/> if <see cref="OnSquish"/> handled it; otherwise the entity was removed.</returns>
+    public bool Squish()
+    {
+        if (Entity?.Scene is null)
+            return false;
+
+        if (OnSquish?.Invoke() == true)
+            return true;
+
+        Entity.Scene.Remove(Entity);
+        return false;
+    }
+
+    /// <summary>
     /// Moves the owning entity horizontally in 1px steps, stopping at the first blocking solid.
     /// </summary>
     /// <param name="pixels">Distance to move in pixels; sign selects direction.</param>

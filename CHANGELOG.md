@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Actor** — `IsRiding` (probe-only), `OnSquish`, and `Squish` for kinematic resolution (ADR-0024)
+
 ### Fixed
 
 - **PlatformerBody** — lift momentum horizontal transfer uses `Actor.MoveX` so geometry blocks inherited platform speed

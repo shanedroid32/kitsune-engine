@@ -59,6 +59,93 @@ public class PlatformerBodyTests
     }
 
     [Fact]
+    public void Simulate_CoyoteJumpSucceedsAfterWalkingOffLedge()
+    {
+        var scene = new Scene();
+        var (entity, body, actor) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 48, 32);
+        body.CoyoteTimeFrames = 6;
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        while (body.IsGrounded)
+        {
+            actor.MoveX(1f);
+            body.Simulate(1f / 60f);
+        }
+
+        var airY = entity.Position.Y;
+        Assert.False(body.IsGrounded);
+        Assert.True(body.CoyoteFramesRemaining > 0);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        Assert.True(entity.Position.Y < airY);
+        Assert.False(body.IsGrounded);
+    }
+
+    [Fact]
+    public void Simulate_CoyoteJumpFailsAfterWindowExpires()
+    {
+        var scene = new Scene();
+        var (entity, body, actor) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 48, 32);
+        body.CoyoteTimeFrames = 4;
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        while (body.IsGrounded)
+        {
+            actor.MoveX(1f);
+            body.Simulate(1f / 60f);
+        }
+
+        for (var i = 0; i < body.CoyoteTimeFrames + 1; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.Equal(0, body.CoyoteFramesRemaining);
+
+        var yBefore = entity.Position.Y;
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        Assert.True(entity.Position.Y > yBefore);
+    }
+
+    [Fact]
+    public void Simulate_CoyoteTimeResetsOnLanding()
+    {
+        var scene = new Scene();
+        var (entity, body, actor) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 48, 32);
+        AddSolidFloor(scene, new Vector2(-64, 200), 256, 32);
+        body.CoyoteTimeFrames = 6;
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        while (body.IsGrounded)
+        {
+            actor.MoveX(1f);
+            body.Simulate(1f / 60f);
+        }
+
+        Assert.True(body.CoyoteFramesRemaining > 0);
+
+        for (var i = 0; i < 240; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.True(body.IsGrounded);
+        Assert.Equal(0, body.CoyoteFramesRemaining);
+    }
+
+    [Fact]
     public void Simulate_JumpClearsGroundBriefly()
     {
         var scene = new Scene();

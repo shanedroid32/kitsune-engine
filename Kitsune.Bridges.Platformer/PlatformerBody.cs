@@ -18,7 +18,18 @@ public sealed class PlatformerBody : Component
     public float JumpSpeed { get; set; } = 210f;
 
     /// <summary>
-    /// When <see langword="true"/> on the next simulation step, starts a jump if grounded.
+    /// Grace period in frames after leaving the ground (without jumping) during which
+    /// <see cref="JumpRequested"/> still starts a jump. Default matches common 60fps platformer feel (~100ms).
+    /// </summary>
+    public int CoyoteTimeFrames { get; set; } = 6;
+
+    /// <summary>
+    /// Remaining coyote-time frames after the last simulation step; zero when inactive.
+    /// </summary>
+    public int CoyoteFramesRemaining { get; private set; }
+
+    /// <summary>
+    /// When <see langword="true"/> on the next simulation step, starts a jump if grounded or within coyote time.
     /// </summary>
     public bool JumpRequested { get; set; }
 
@@ -56,10 +67,15 @@ public sealed class PlatformerBody : Component
 
         WasGrounded = IsGrounded;
 
-        if (JumpRequested && IsGrounded)
+        var canJump = IsGrounded || CoyoteFramesRemaining > 0;
+        var jumpedThisFrame = false;
+
+        if (JumpRequested && canJump)
         {
             _verticalVelocity = -JumpSpeed;
             JumpRequested = false;
+            CoyoteFramesRemaining = 0;
+            jumpedThisFrame = true;
         }
 
         _verticalVelocity += Gravity * deltaTime;
@@ -75,6 +91,13 @@ public sealed class PlatformerBody : Component
 
         if (IsGrounded && _verticalVelocity > 0f)
             _verticalVelocity = 0f;
+
+        if (IsGrounded)
+            CoyoteFramesRemaining = 0;
+        else if (WasGrounded && !jumpedThisFrame)
+            CoyoteFramesRemaining = CoyoteTimeFrames;
+        else if (CoyoteFramesRemaining > 0)
+            CoyoteFramesRemaining--;
     }
 
     private bool ProbeGrounded(Actor actor)

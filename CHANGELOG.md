@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Kitsune.Core** — Scene collision query (`CollideCheck`, `CollideFirst`, `CollideAll`)
 - **Kitsune.Bridges.Platformer** — `Solid` and `Actor` with pixel-step movement resolution
 - **Kitsune.Bridges.Platformer** — `PlatformerBody` for gravity, jumping, and grounded state
+- **PlatformerBody** — coyote time (`CoyoteTimeFrames`, `CoyoteFramesRemaining`)
 
 ### Changed
 

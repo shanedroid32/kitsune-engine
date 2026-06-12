@@ -137,6 +137,73 @@ public class Scene
         }
     }
 
+    /// <summary>
+    /// Tests whether <paramref name="source"/> overlaps any tagged entity's hitbox.
+    /// </summary>
+    /// <param name="source">The hitbox to test, attached to an entity in this scene.</param>
+    /// <param name="tag">The tag to query.</param>
+    /// <returns><see langword="true"/> when an overlap exists; otherwise <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="tag"/> is empty.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <paramref name="source"/> is not attached to an entity in this scene.</exception>
+    public bool CollideCheck(Hitbox source, string tag)
+    {
+        ValidateCollisionSource(source, tag);
+        return CollideFirst(source, tag) is not null;
+    }
+
+    /// <summary>
+    /// Returns the first entity registered under <paramref name="tag"/> whose hitbox overlaps <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The hitbox to test, attached to an entity in this scene.</param>
+    /// <param name="tag">The tag to query.</param>
+    /// <returns>The first overlapping entity in tag registration order, or <see langword="null"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="tag"/> is empty.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <paramref name="source"/> is not attached to an entity in this scene.</exception>
+    public Entity? CollideFirst(Hitbox source, string tag)
+    {
+        ValidateCollisionSource(source, tag);
+
+        var sourceEntity = source.Entity!;
+
+        foreach (var target in Tracker.GetEntities(tag))
+        {
+            if (target == sourceEntity)
+                continue;
+
+            if (OverlapsAnyHitbox(source, target))
+                return target;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Returns every entity registered under <paramref name="tag"/> whose hitbox overlaps <paramref name="source"/>.
+    /// </summary>
+    /// <param name="source">The hitbox to test, attached to an entity in this scene.</param>
+    /// <param name="tag">The tag to query.</param>
+    /// <returns>Overlapping entities in tag registration order.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="tag"/> is empty.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <paramref name="source"/> is not attached to an entity in this scene.</exception>
+    public IEnumerable<Entity> CollideAll(Hitbox source, string tag)
+    {
+        ValidateCollisionSource(source, tag);
+
+        var sourceEntity = source.Entity!;
+
+        foreach (var target in Tracker.GetEntities(tag))
+        {
+            if (target == sourceEntity)
+                continue;
+
+            if (OverlapsAnyHitbox(source, target))
+                yield return target;
+        }
+    }
+
     internal IReadOnlyList<Entity> GetRenderOrder()
     {
         var drawOrder = new List<Entity>(_entities.Count);
@@ -190,5 +257,25 @@ public class Scene
         _entities.Remove(entity);
         Tags.UnregisterAll(entity);
         entity.Scene = null;
+    }
+
+    private void ValidateCollisionSource(Hitbox source, string tag)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentException.ThrowIfNullOrEmpty(tag);
+
+        if (source.Entity is null || source.Entity.Scene != this)
+            throw new InvalidOperationException("Source hitbox must be attached to an entity in this scene.");
+    }
+
+    private static bool OverlapsAnyHitbox(Hitbox source, Entity target)
+    {
+        foreach (var component in target.Components)
+        {
+            if (component is Hitbox targetHitbox && Hitbox.Overlaps(source, targetHitbox))
+                return true;
+        }
+
+        return false;
     }
 }

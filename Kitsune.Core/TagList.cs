@@ -5,7 +5,7 @@ namespace Kitsune.Core;
 /// </summary>
 public sealed class TagList
 {
-    private readonly Dictionary<string, HashSet<Entity>> _entitiesByTag = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<Entity>> _entitiesByTag = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Registers an entity under a tag.
@@ -25,7 +25,8 @@ public sealed class TagList
             _entitiesByTag[tag] = entities;
         }
 
-        entities.Add(entity);
+        if (!entities.Contains(entity))
+            entities.Add(entity);
     }
 
     /// <summary>

@@ -32,6 +32,12 @@ public sealed class KinematicSolid : Component
     /// </summary>
     public Func<float>? DeltaTimeSource { get; set; }
 
+    /// <summary>
+    /// World-space displacement applied by the most recent <see cref="Step"/> call.
+    /// Read by <see cref="PlatformerBody"/> to carry grounded actors on the same frame.
+    /// </summary>
+    public Vector2 FrameDisplacement { get; private set; }
+
     private Vector2 _startPosition;
     private Vector2 _targetPosition;
     private bool _initialized;
@@ -60,10 +66,13 @@ public sealed class KinematicSolid : Component
     /// <param name="deltaTime">Elapsed time in seconds.</param>
     public void Step(float deltaTime)
     {
+        FrameDisplacement = Vector2.Zero;
+
         if (Entity is null || !_initialized || Speed <= 0f || deltaTime <= 0f)
             return;
 
-        var current = Entity.Position;
+        var before = Entity.Position;
+        var current = before;
         var toTarget = _targetPosition - current;
         var distance = toTarget.Length();
 
@@ -71,18 +80,20 @@ public sealed class KinematicSolid : Component
         {
             Entity.Position = _targetPosition;
             SwapEndpoints();
-            return;
         }
-
-        var move = Speed * deltaTime;
-        if (move >= distance)
+        else
         {
-            Entity.Position = _targetPosition;
-            SwapEndpoints();
-            return;
+            var move = Speed * deltaTime;
+            if (move >= distance)
+            {
+                Entity.Position = _targetPosition;
+                SwapEndpoints();
+            }
+            else
+                Entity.Position = current + toTarget / distance * move;
         }
 
-        Entity.Position = current + toTarget / distance * move;
+        FrameDisplacement = Entity.Position - before;
     }
 
     private void SwapEndpoints()

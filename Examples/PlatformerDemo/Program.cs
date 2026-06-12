@@ -60,7 +60,7 @@ sealed class PlatformerDemoApp : KitsuneApp
         AddSolid(scene, new Vector2(620, 360), new Vector2(140, 20), new Color(0.38f, 0.41f, 0.48f, 1f));
 
         // Moving platform (registered before player so KinematicSolid updates first each frame).
-        AddMovingPlatform(scene, new Vector2(260, 468), new Vector2(360, 468), 70f);
+        AddMovingPlatform(scene, new Vector2(260, 500), new Vector2(360, 500), 70f);
 
         var player = new Entity
         {

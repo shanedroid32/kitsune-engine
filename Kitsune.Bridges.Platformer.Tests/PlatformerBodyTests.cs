@@ -260,6 +260,61 @@ public class PlatformerBodyTests
     }
 
     [Fact]
+    public void Simulate_CarriesGroundedPlayerWithKinematicSolid()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(60, 48), Speed = 60f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var (player, body, _) = AddBody(scene, new Vector2(16, 16));
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.True(body.IsGrounded);
+        var startX = player.Position.X;
+
+        mover.Step(1f / 60f);
+        body.Simulate(1f / 60f);
+
+        Assert.Equal(startX + 1f, player.Position.X);
+        Assert.True(body.IsGrounded);
+    }
+
+    [Fact]
+    public void Simulate_DoesNotCarryAirbornePlayer()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(60, 48), Speed = 60f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var (player, body, _) = AddBody(scene, new Vector2(16, 16));
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+        Assert.False(body.IsGrounded);
+
+        var xBefore = player.Position.X;
+        mover.Step(1f / 60f);
+        body.Simulate(1f / 60f);
+
+        Assert.Equal(xBefore, player.Position.X);
+    }
+
+    [Fact]
     public void Simulate_JumpCornerCorrectionClearsPartialCeilingLip()
     {
         var scene = new Scene();

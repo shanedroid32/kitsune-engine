@@ -5,6 +5,11 @@ namespace Kitsune.Bridges.Platformer;
 /// <summary>
 /// Vertical platformer physics state — gravity, jumping, and grounded tracking via <see cref="Actor"/>.
 /// </summary>
+/// <remarks>
+/// When grounded on a <see cref="KinematicSolid"/>, applies that platform's <see cref="KinematicSolid.FrameDisplacement"/>
+/// after vertical simulation so the entity rides moving solids. Requires the platform entity to update before this body
+/// on the same frame (see <see cref="KinematicSolid"/> remarks).
+/// </remarks>
 public sealed class PlatformerBody : Component
 {
     /// <summary>
@@ -122,7 +127,10 @@ public sealed class PlatformerBody : Component
             _verticalVelocity = 0f;
 
         if (IsGrounded)
+        {
+            ApplyPlatformCarry();
             CoyoteFramesRemaining = 0;
+        }
         else if (WasGrounded && !jumpedThisFrame)
             CoyoteFramesRemaining = CoyoteTimeFrames;
         else if (CoyoteFramesRemaining > 0)
@@ -139,6 +147,32 @@ public sealed class PlatformerBody : Component
         CoyoteFramesRemaining = 0;
         JumpBufferFramesRemaining = 0;
         return true;
+    }
+
+    private void ApplyPlatformCarry()
+    {
+        var hitbox = RequireHitbox();
+        var scene = RequireScene();
+        var entity = Entity!;
+
+        entity.Position += new System.Numerics.Vector2(0f, 1f);
+        var ground = scene.CollideFirst(hitbox, Solid.Tag);
+        entity.Position -= new System.Numerics.Vector2(0f, 1f);
+
+        if (ground is null)
+            return;
+
+        foreach (var component in ground.Components)
+        {
+            if (component is not KinematicSolid kinematic)
+                continue;
+
+            var delta = kinematic.FrameDisplacement;
+            if (delta != System.Numerics.Vector2.Zero)
+                entity.Position += delta;
+
+            return;
+        }
     }
 
     private bool ProbeGrounded(Actor actor)

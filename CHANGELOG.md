@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Examples/PlatformerDemo** — one-screen level with gap, walk-off ledge, and elevated platforms
 - **KinematicSolid** — ping-pong kinematic motion for moving solid entities
 - **KinematicSolid** — documented simulation order; PlatformerDemo moving platform blocks the player
+- **PlatformerBody** — carries grounded actors on `KinematicSolid` via `FrameDisplacement`
 
 ### Changed
 

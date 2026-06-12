@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Kitsune.Core/Kitsune.Core.csproj" />
+  <Project Path="Kitsune.Bridges.Platformer/Kitsune.Bridges.Platformer.csproj" />
+  <Project Path="Kitsune.Editor/Kitsune.Editor.csproj" />
+  <Project Path="Kitsune.Core.Tests/Kitsune.Core.Tests.csproj" />
+  <Project Path="Examples/HelloWorld/HelloWorld.csproj" />
+  <Project Path="Examples/CoreDemo/CoreDemo.csproj" />
+</Solution>

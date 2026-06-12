@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Kitsune.Core</RootNamespace>
+    <AssemblyName>Kitsune.Core</AssemblyName>
+    <Version>0.1.0</Version>
+    <PackageId>Kitsune.Core</PackageId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Kitsune Core — Scene, Entity, Component, collision, and rendering.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FosterFramework" Version="0.3.0">
+      <PrivateAssets>none</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Kitsune.Core.Tests" />
+  </ItemGroup>
+
+</Project>

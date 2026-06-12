@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Kitsune.Bridges.Platformer</RootNamespace>
+    <AssemblyName>Kitsune.Bridges.Platformer</AssemblyName>
+    <Version>0.1.0</Version>
+    <PackageId>Kitsune.Bridges.Platformer</PackageId>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Platformer gameplay bridge for Kitsune (stub).</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kitsune.Core\Kitsune.Core.csproj" />
+  </ItemGroup>
+
+</Project>

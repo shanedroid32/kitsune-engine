@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Kitsune.Core** — Scene collision query (`CollideCheck`, `CollideFirst`, `CollideAll`)
+- **Kitsune.Bridges.Platformer** — `Solid` and `Actor` with pixel-step movement resolution
 
 ## [0.1.1] - 2026-06-12
 

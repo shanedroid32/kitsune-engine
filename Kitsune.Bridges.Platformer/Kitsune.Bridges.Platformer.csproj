@@ -11,7 +11,7 @@
     <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Platformer gameplay bridge for Kitsune (stub).</Description>
+    <Description>Platformer gameplay bridge for Kitsune — Solid, Actor, and forgiveness systems.</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -29,7 +29,7 @@ dotnet run --project Examples/CoreDemo
 
 Use **A/D** to walk and **Space** or **W** to jump.
 
-**PlatformerDemo** showcases the Platformer Bridge — coyote time, jump buffer, moving platforms, and a one-screen level:
+**PlatformerDemo** showcases the Platformer Bridge — coyote time, jump buffer, moving platforms, one-way and jump-through solids, and a one-screen level:
 
 ```bash
 dotnet run --project Examples/PlatformerDemo
@@ -69,7 +69,7 @@ public sealed class MyGame : KitsuneApp
 
 `KitsuneApp` wires Foster's `Startup` / `Update` / `Render` / `Shutdown` to the active scene automatically.
 
-## NuGet (0.2.1)
+## NuGet (0.3.0)
 
 Packages are versioned `0.x` during active development. When published to [nuget.org](https://www.nuget.org/packages/Kitsune.Core):
 

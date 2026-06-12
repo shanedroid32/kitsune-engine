@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Kitsune.Core</RootNamespace>
     <AssemblyName>Kitsune.Core</AssemblyName>
-    <Version>0.2.1</Version>
+    <Version>0.3.0</Version>
     <PackageId>Kitsune.Core</PackageId>
     <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

@@ -51,6 +51,12 @@ public sealed class PlatformerBody : Component
     public bool JumpRequested { get; set; }
 
     /// <summary>
+    /// When <see langword="true"/> on the next simulation step, allows falling through
+    /// <see cref="JumpThroughSolid"/> platforms while grounded on them.
+    /// </summary>
+    public bool DropThroughRequested { get; set; }
+
+    /// <summary>
     /// Optional provider for frame delta time; when set, <see cref="Update"/> runs simulation automatically.
     /// </summary>
     public Func<float>? DeltaTimeSource { get; set; }
@@ -66,6 +72,7 @@ public sealed class PlatformerBody : Component
     public bool WasGrounded { get; private set; }
 
     private float _verticalVelocity;
+    private KinematicSolid? _lastRiddenKinematic;
 
     /// <inheritdoc />
     public override void Update()
@@ -90,7 +97,7 @@ public sealed class PlatformerBody : Component
         if (JumpRequested)
         {
             if (canJump)
-                jumpedThisFrame = StartJump();
+                jumpedThisFrame = StartJump(deltaTime);
             else
             {
                 JumpBufferFramesRemaining = JumpBufferFrames;
@@ -99,7 +106,7 @@ public sealed class PlatformerBody : Component
         }
         else if (JumpBufferFramesRemaining > 0 && canJump)
         {
-            jumpedThisFrame = StartJump();
+            jumpedThisFrame = StartJump(deltaTime);
         }
 
         _verticalVelocity += Gravity * deltaTime;
@@ -138,15 +145,63 @@ public sealed class PlatformerBody : Component
 
         if (JumpBufferFramesRemaining > 0 && !jumpedThisFrame)
             JumpBufferFramesRemaining--;
+
+        DropThroughRequested = false;
     }
 
-    private bool StartJump()
+    private bool StartJump(float deltaTime)
     {
         _verticalVelocity = -JumpSpeed;
+        ApplyLiftMomentum(deltaTime);
         JumpRequested = false;
         CoyoteFramesRemaining = 0;
         JumpBufferFramesRemaining = 0;
         return true;
+    }
+
+    private void ApplyLiftMomentum(float deltaTime)
+    {
+        if (deltaTime <= 0f || !WasGrounded)
+            return;
+
+        var kinematic = ResolveRiddenKinematic();
+        if (kinematic is null)
+            return;
+
+        var displacement = kinematic.FrameDisplacement;
+        if (displacement == System.Numerics.Vector2.Zero)
+            return;
+
+        var velocity = displacement / deltaTime;
+        _verticalVelocity += velocity.Y;
+        Entity!.Position += new System.Numerics.Vector2(displacement.X, 0f);
+        _lastRiddenKinematic = null;
+    }
+
+    private KinematicSolid? ResolveRiddenKinematic()
+    {
+        if (_lastRiddenKinematic is not null)
+            return _lastRiddenKinematic;
+
+        var hitbox = RequireHitbox();
+        var scene = RequireScene();
+        var entity = Entity!;
+
+        entity.Position += new System.Numerics.Vector2(0f, 1f);
+        var ground = DirectionalSolidCollision.FindFirstBlocking(
+            scene, entity, hitbox, Solid.Tag, new System.Numerics.Vector2(0f, 1f));
+        entity.Position -= new System.Numerics.Vector2(0f, 1f);
+
+        if (ground is null)
+            return null;
+
+        foreach (var component in ground.Components)
+        {
+            if (component is KinematicSolid kinematic)
+                return kinematic;
+        }
+
+        return null;
     }
 
     private void ApplyPlatformCarry()
@@ -156,17 +211,24 @@ public sealed class PlatformerBody : Component
         var entity = Entity!;
 
         entity.Position += new System.Numerics.Vector2(0f, 1f);
-        var ground = scene.CollideFirst(hitbox, Solid.Tag, CollisionLayer.Geometry);
+        var ground = DirectionalSolidCollision.FindFirstBlocking(
+            scene, entity, hitbox, Solid.Tag, new System.Numerics.Vector2(0f, 1f));
         entity.Position -= new System.Numerics.Vector2(0f, 1f);
 
         if (ground is null)
+        {
+            _lastRiddenKinematic = null;
             return;
+        }
+
+        _lastRiddenKinematic = null;
 
         foreach (var component in ground.Components)
         {
             if (component is not KinematicSolid kinematic)
                 continue;
 
+            _lastRiddenKinematic = kinematic;
             var delta = kinematic.FrameDisplacement;
             if (delta != System.Numerics.Vector2.Zero)
                 entity.Position += delta;
@@ -182,7 +244,8 @@ public sealed class PlatformerBody : Component
         var entity = Entity!;
 
         entity.Position += new System.Numerics.Vector2(0f, 1f);
-        var grounded = scene.CollideCheck(hitbox, Solid.Tag, CollisionLayer.Geometry);
+        var grounded = DirectionalSolidCollision.FindFirstBlocking(
+            scene, entity, hitbox, Solid.Tag, new System.Numerics.Vector2(0f, 1f)) is not null;
         entity.Position -= new System.Numerics.Vector2(0f, 1f);
 
         return grounded;

@@ -35,7 +35,7 @@ Use **A/D** to walk and **Space** or **W** to jump.
 dotnet run --project Examples/PlatformerDemo
 ```
 
-Controls are the same as CoreDemo (**A/D** walk, **Space** or **W** jump). Try the walk-off ledge, the floor gap, and the blue moving platform.
+Use **A/D** to walk, **Space** or **W** to jump, and **S** to drop through jump-through platforms. Try the walk-off ledge, floor gap, orange one-way, cyan jump-through platform, and jumping off the moving platform for lift momentum.
 
 ## Use Kitsune in your project
 

@@ -49,6 +49,9 @@ sealed class PlatformerDemoApp : KitsuneApp
         AddSolid(scene, new Vector2(40, 500), new Vector2(220, 40));
         AddSolid(scene, new Vector2(380, 500), new Vector2(540, 40));
 
+        // One-way over the gap — jump up through from below; land when falling onto it.
+        AddOneWay(scene, new Vector2(270, 468), new Vector2(80, 12));
+
         // Safety floor — keeps missed jumps inside the play area.
         AddSolid(scene, new Vector2(40, 528), new Vector2(840, 12));
 
@@ -58,11 +61,14 @@ sealed class PlatformerDemoApp : KitsuneApp
         // Trigger zone — walk through without blocking (player tints while inside).
         AddTriggerZone(scene, new Vector2(300, 468), new Vector2(60, 32));
 
+        // Jump-through platform — hold S to drop down through while standing on it.
+        AddJumpThrough(scene, new Vector2(420, 380), new Vector2(140, 16));
+
         // Elevated platforms on the right side of the gap.
         AddSolid(scene, new Vector2(420, 400), new Vector2(160, 20), new Color(0.40f, 0.43f, 0.50f, 1f));
         AddSolid(scene, new Vector2(620, 360), new Vector2(140, 20), new Color(0.38f, 0.41f, 0.48f, 1f));
 
-        // Moving platform (registered before player so KinematicSolid updates first each frame).
+        // Moving platform — ride it, then jump to feel lift momentum (registered before player).
         AddMovingPlatform(scene, new Vector2(260, 500), new Vector2(360, 500), 70f);
 
         var player = new Entity
@@ -121,6 +127,32 @@ sealed class PlatformerDemoApp : KitsuneApp
         wall.Add(new Solid());
         wall.Add(new RectSprite(size.X, size.Y, color));
         scene.Add(wall);
+    }
+
+    private static void AddOneWay(Scene scene, Vector2 position, Vector2 size)
+    {
+        var platform = new Entity
+        {
+            Position = position,
+            Depth = 3,
+        };
+        platform.Add(new Hitbox(size.X, size.Y));
+        platform.Add(new OneWaySolid());
+        platform.Add(new RectSprite(size.X, size.Y, new Color(0.75f, 0.55f, 0.35f, 1f)));
+        scene.Add(platform);
+    }
+
+    private static void AddJumpThrough(Scene scene, Vector2 position, Vector2 size)
+    {
+        var platform = new Entity
+        {
+            Position = position,
+            Depth = 3,
+        };
+        platform.Add(new Hitbox(size.X, size.Y));
+        platform.Add(new JumpThroughSolid());
+        platform.Add(new RectSprite(size.X, size.Y, new Color(0.45f, 0.72f, 0.88f, 1f)));
+        scene.Add(platform);
     }
 
     private static void AddTriggerZone(Scene scene, Vector2 position, Vector2 size)
@@ -205,6 +237,9 @@ sealed class WasdDriver : Component
 
         if (keyboard.Pressed(Keys.Space) || keyboard.Pressed(Keys.W))
             body.JumpRequested = true;
+
+        if (keyboard.Down(Keys.S))
+            body.DropThroughRequested = true;
 
         var moveX = 0f;
         if (keyboard.Down(Keys.A))

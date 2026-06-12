@@ -99,47 +99,8 @@ public sealed class Actor : Component
         return moved;
     }
 
-    private Entity? FindFirstBlockingSolid(Hitbox hitbox, string tag, Vector2 step)
-    {
-        var scene = RequireScene();
-
-        foreach (var target in scene.CollideAll(hitbox, tag, CollisionLayer.Geometry))
-        {
-            if (IsBlockedBy(target, hitbox, step))
-                return target;
-        }
-
-        return null;
-    }
-
-    private bool IsBlockedBy(Entity blocker, Hitbox hitbox, Vector2 step)
-    {
-        PlatformerBody? body = null;
-
-        foreach (var component in Entity!.Components)
-        {
-            if (component is PlatformerBody platformerBody)
-            {
-                body = platformerBody;
-                break;
-            }
-        }
-
-        var hasDirectional = false;
-
-        foreach (var component in blocker.Components)
-        {
-            if (component is not IDirectionalSolid directional)
-                continue;
-
-            hasDirectional = true;
-
-            if (directional.BlocksMovement(hitbox, step, body))
-                return true;
-        }
-
-        return !hasDirectional;
-    }
+    private Entity? FindFirstBlockingSolid(Hitbox hitbox, string tag, Vector2 step) =>
+        DirectionalSolidCollision.FindFirstBlocking(RequireScene(), Entity!, hitbox, tag, step);
 
     private Hitbox RequireHitbox()
     {

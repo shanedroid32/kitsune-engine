@@ -335,6 +335,89 @@ public class PlatformerBodyTests
     }
 
     [Fact]
+    public void Simulate_LiftMomentum_AddsHorizontalPlatformSpeedOnJump()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(60, 48), Speed = 60f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var (player, body, _) = AddBody(scene, new Vector2(16, 16));
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        mover.Step(1f / 60f);
+        var xBefore = player.Position.X;
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        Assert.True(player.Position.X > xBefore);
+        Assert.False(body.IsGrounded);
+    }
+
+    [Fact]
+    public void Simulate_LiftMomentum_AddsVerticalPlatformSpeedOnJump()
+    {
+        var yWithoutLift = MeasureFirstJumpFrameY(withPlatformStep: false);
+        var yWithLift = MeasureFirstJumpFrameY(withPlatformStep: true);
+
+        Assert.True(yWithLift > yWithoutLift);
+    }
+
+    [Fact]
+    public void Simulate_LiftMomentum_AddsDiagonalPlatformSpeedOnJump()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(60, 108), Speed = 120f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var (player, body, _) = AddBody(scene, new Vector2(16, 16));
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        var xBefore = player.Position.X;
+        var yBefore = player.Position.Y;
+        mover.Step(1f / 60f);
+        Assert.True(mover.FrameDisplacement.X > 0f);
+        Assert.True(mover.FrameDisplacement.Y > 0f);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        Assert.True(player.Position.X > xBefore);
+        Assert.True(player.Position.Y < yBefore);
+    }
+
+    [Fact]
+    public void Simulate_LiftMomentum_UnchangedOnStaticGround()
+    {
+        var scene = new Scene();
+        var (player, body, _) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 64, 32);
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        var xBefore = player.Position.X;
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        Assert.Equal(xBefore, player.Position.X);
+    }
+
+    [Fact]
     public void Simulate_JumpClearsGroundBriefly()
     {
         var scene = new Scene();
@@ -374,6 +457,30 @@ public class PlatformerBodyTests
         floor.Add(new Hitbox(width, height));
         floor.Add(new Solid());
         scene.Add(floor);
+    }
+
+    private static float MeasureFirstJumpFrameY(bool withPlatformStep)
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(0, 108), Speed = 120f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var (player, body, _) = AddBody(scene, new Vector2(16, 16));
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        if (withPlatformStep)
+            mover.Step(1f / 60f);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+        return player.Position.Y;
     }
 
     private static void AddSolidCeilingLip(Scene scene, Vector2 position, float width, float height)

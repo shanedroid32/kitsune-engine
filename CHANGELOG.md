@@ -9,6 +9,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Kitsune.Bridges.Platformer** — `IDirectionalSolid` for direction-aware solid blocking; `Actor` consults it during movement
+- **Kitsune.Bridges.Platformer** — `OneWaySolid` and `JumpThroughSolid` directional platform components
+- **PlatformerBody** — `DropThroughRequested` for falling through jump-through platforms
+- **PlatformerBody** — lift momentum on jump from `KinematicSolid` (instant 2D platform velocity)
+- **PlatformerDemo** — one-way strip, jump-through platform (hold **S**), lift momentum off moving platform
+
+### Changed
+
+- **PlatformerBody** — grounded probe and carry use directional solid filtering
 
 ## [0.2.1] - 2026-06-12
 

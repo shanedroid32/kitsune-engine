@@ -46,7 +46,7 @@ sealed class CoreDemoApp : KitsuneApp
         AddWall(scene, new Vector2(0, 500), new Vector2(960, 40));
         AddWall(scene, new Vector2(0, 0), new Vector2(40, 540));
         AddWall(scene, new Vector2(920, 0), new Vector2(40, 540));
-        AddWall(scene, new Vector2(300, 350), new Vector2(200, 20));
+        AddWall(scene, new Vector2(280, 400), new Vector2(220, 20));
 
         var player = new Entity
         {
@@ -56,7 +56,12 @@ sealed class CoreDemoApp : KitsuneApp
         player.Add(new Hitbox(32, 32));
         player.Add(new Actor());
         player.Add(new WasdDriver());
-        player.Add(new PlatformerBody { DeltaTimeSource = () => DeltaTime });
+        player.Add(new PlatformerBody
+        {
+            Gravity = 1100f,
+            JumpSpeed = 500f,
+            DeltaTimeSource = () => DeltaTime,
+        });
         player.Add(new RectSprite(32, 32, new Color(0.95f, 0.55f, 0.25f, 1f)));
         scene.Add(player);
         scene.Tags.Register(player, "player");
@@ -113,7 +118,7 @@ sealed class RectSprite(float width, float height, Color color) : Component
 /// </summary>
 sealed class WasdDriver : Component
 {
-    private const float Speed = 220f;
+    private const float Speed = 380f;
 
     public override void Update()
     {

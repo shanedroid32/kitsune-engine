@@ -29,3 +29,6 @@ jobs:
 
       - name: Format check
         run: dotnet format kitsune.slnx --verify-no-changes
+
+      - name: Pack
+        run: dotnet pack kitsune.slnx --no-build -c Release -o ./artifacts/packages

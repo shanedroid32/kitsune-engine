@@ -7,8 +7,8 @@ Install the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 ## Clone and build
 
 ```bash
-git clone <repository-url>
-cd source
+git clone https://github.com/shanedroid32/kitsune-engine.git
+cd kitsune-engine
 dotnet build
 dotnet test
 ```
@@ -56,8 +56,10 @@ public sealed class MyGame : KitsuneApp
 
 ## NuGet (0.1.0)
 
-Packages are versioned `0.x` during active development. When published:
+Packages are versioned `0.x` during active development. When published to [nuget.org](https://www.nuget.org/packages/Kitsune.Core):
 
 ```bash
 dotnet add package Kitsune.Core
 ```
+
+See [CHANGELOG.md](../CHANGELOG.md) for release notes.

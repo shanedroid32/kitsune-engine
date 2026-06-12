@@ -1,0 +1,36 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore kitsune.slnx
+
+      - name: Build
+        run: dotnet build kitsune.slnx --no-restore -c Release
+
+      - name: Test
+        run: dotnet test kitsune.slnx --no-build -c Release --verbosity normal
+
+      - name: Pack
+        run: dotnet pack kitsune.slnx --no-build -c Release -o ./artifacts/packages
+
+      - name: Push to NuGet
+        run: dotnet nuget push ./artifacts/packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Push symbols to NuGet
+        run: dotnet nuget push ./artifacts/packages/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

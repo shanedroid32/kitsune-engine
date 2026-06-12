@@ -49,6 +49,7 @@ kitsune-engine/
 - [Getting started](docs/getting-started.md)
 - [Design principles](docs/design-principles.md)
 - [Contributing](docs/contributing.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 

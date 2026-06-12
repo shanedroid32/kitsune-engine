@@ -8,6 +8,7 @@
     <AssemblyName>Kitsune.Core</AssemblyName>
     <Version>0.1.0</Version>
     <PackageId>Kitsune.Core</PackageId>
+    <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Kitsune Core — Scene, Entity, Component, collision, and rendering.</Description>

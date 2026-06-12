@@ -1,0 +1,67 @@
+name: Bug report
+description: Something isn't working as expected
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough detail to reproduce the issue.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Kitsune.Core
+        - Kitsune.Bridges.Platformer
+        - Kitsune.Editor
+        - Examples
+        - CI / packaging
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: NuGet or git tag/commit if known
+      placeholder: "0.1.0 or commit SHA"
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `dotnet run --project Examples/CoreDemo`
+        2. Press left arrow
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, .NET SDK version, Foster version if relevant
+      placeholder: "Windows 11, .NET 10.0.x"
+    validations:
+      required: false

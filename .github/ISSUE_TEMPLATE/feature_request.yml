@@ -1,0 +1,46 @@
+name: Feature request
+description: Suggest an idea for Kitsune
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem and the outcome you want. For large API changes, open a discussion before implementing.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Kitsune.Core
+        - Kitsune.Bridges.Platformer
+        - Kitsune.Editor
+        - Examples
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to accomplish?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work?
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

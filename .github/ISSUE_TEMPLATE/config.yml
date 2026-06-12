@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/shanedroid32/kitsune-engine/blob/main/docs/contributing.md
+    about: Scope, versioning, PR expectations, and release process
+  - name: Getting started
+    url: https://github.com/shanedroid32/kitsune-engine/blob/main/docs/getting-started.md
+    about: Clone, build, run examples, and add Kitsune to your project

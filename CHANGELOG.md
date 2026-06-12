@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- NuGet publish workflow and shared package metadata
+- NuGet publish workflow (Trusted Publishing / OIDC) and shared package metadata
 - GitHub issue templates and triage labels
 - This changelog
 

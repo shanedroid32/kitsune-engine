@@ -43,7 +43,17 @@ Maintainers publish packages from tagged releases:
 2. Create a GitHub release (tag `v0.x.y`) — this triggers the **Publish** workflow.
 3. The workflow pushes `Kitsune.Core` and `Kitsune.Bridges.Platformer` to nuget.org.
 
-The repository needs a `NUGET_API_KEY` secret ([nuget.org API key](https://www.nuget.org/account/apikeys) scoped to push). Use **Actions → Publish → Run workflow** for a manual publish without a release.
+Publishing uses [NuGet Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing) (OIDC) — no long-lived API keys.
+
+**One-time setup:**
+
+1. On [nuget.org](https://www.nuget.org), open **Trusted Publishing** and add a policy:
+   - **Repository owner:** `shanedroid32`
+   - **Repository:** `kitsune-engine`
+   - **Workflow file:** `publish.yml`
+2. In GitHub repo settings → Secrets, add `NUGET_USER` with your nuget.org **profile name** (not your email).
+
+Use **Actions → Publish → Run workflow** for a manual publish without a release. Request the OIDC login step shortly before push — temporary keys expire after one hour.
 
 ## Code style
 

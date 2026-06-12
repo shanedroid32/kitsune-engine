@@ -260,6 +260,26 @@ public class PlatformerBodyTests
     }
 
     [Fact]
+    public void Simulate_JumpCornerCorrectionClearsPartialCeilingLip()
+    {
+        var scene = new Scene();
+        var (entity, body, _) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 64, 32);
+        AddSolidCeilingLip(scene, new Vector2(31, 16), 1, 16);
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        body.JumpRequested = true;
+        for (var i = 0; i < 60; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.True(entity.Position.X < 0f);
+        Assert.True(entity.Position.Y < 17f);
+    }
+
+    [Fact]
     public void Simulate_JumpClearsGroundBriefly()
     {
         var scene = new Scene();
@@ -299,5 +319,13 @@ public class PlatformerBodyTests
         floor.Add(new Hitbox(width, height));
         floor.Add(new Solid());
         scene.Add(floor);
+    }
+
+    private static void AddSolidCeilingLip(Scene scene, Vector2 position, float width, float height)
+    {
+        var lip = new Entity { Position = position };
+        lip.Add(new Hitbox(width, height));
+        lip.Add(new Solid());
+        scene.Add(lip);
     }
 }

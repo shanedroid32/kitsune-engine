@@ -42,7 +42,7 @@ jobs:
         run: |
           $apiKey = '${{ steps.login.outputs.NUGET_API_KEY }}'
           $source = 'https://api.nuget.org/v3/index.json'
-          Get-ChildItem ./artifacts/packages/*.nupkg | ForEach-Object {
+          Get-ChildItem ./artifacts/packages/*.nupkg | Where-Object { $_.Extension -eq '.nupkg' } | ForEach-Object {
             dotnet nuget push $_.FullName --api-key $apiKey --source $source --skip-duplicate
           }
 

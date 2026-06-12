@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **KitsuneApp** — scene stack foundation with `Replace(Scene)`; read-only `Scene` (top) and `Scenes` view (ADR-0025)
+- **KitsuneApp** — `Push(Scene)` and `Pop()` overlay stack with deferred FIFO application during Update
+- **Scene** — `UpdatesWhenCovered` and `RendersWhenCovered` for suspended covered scenes
 
 ### Changed
 

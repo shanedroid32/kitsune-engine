@@ -9,9 +9,9 @@ namespace Kitsune.Core;
 public abstract class KitsuneApp : App
 {
     private readonly List<Scene> _scenes = [];
+    private readonly Queue<StackOperation> _pendingOperations = new();
     private Batcher? _batcher;
     private bool _inUpdate;
-    private Scene? _pendingReplace;
 
     /// <summary>
     /// The scene at the top of the stack, if any.
@@ -46,6 +46,28 @@ public abstract class KitsuneApp : App
     }
 
     /// <summary>
+    /// Adds <paramref name="scene"/> on top of the stack without ending covered scenes.
+    /// Applies immediately outside <see cref="Update"/>; deferred until after the current update pass when called during <see cref="Update"/>.
+    /// </summary>
+    /// <param name="scene">The scene to push.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="scene"/> is null.</exception>
+    public void Push(Scene scene)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+        EnqueueOrApply(new PushOperation(scene));
+    }
+
+    /// <summary>
+    /// Removes the top scene from the stack and ends it.
+    /// Applies immediately outside <see cref="Update"/>; deferred until after the current update pass when called during <see cref="Update"/>.
+    /// No-op when the stack is empty.
+    /// </summary>
+    public void Pop()
+    {
+        EnqueueOrApply(PopOperation.Instance);
+    }
+
+    /// <summary>
     /// Ends every scene on the stack and leaves <paramref name="scene"/> as the sole top scene.
     /// Applies immediately outside <see cref="Update"/>; deferred until after the current update pass when called during <see cref="Update"/>.
     /// </summary>
@@ -54,14 +76,7 @@ public abstract class KitsuneApp : App
     public void Replace(Scene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
-
-        if (_inUpdate)
-        {
-            _pendingReplace = scene;
-            return;
-        }
-
-        ApplyReplace(scene);
+        EnqueueOrApply(new ReplaceOperation(scene));
     }
 
     /// <inheritdoc />
@@ -85,7 +100,7 @@ public abstract class KitsuneApp : App
 
         try
         {
-            Scene?.Update();
+            UpdateScenes();
         }
         finally
         {
@@ -99,11 +114,69 @@ public abstract class KitsuneApp : App
     {
         Window.Clear(Color.Black);
 
-        if (Scene is not null && _batcher is not null)
-            Scene.Render(_batcher);
+        if (_batcher is not null)
+        {
+            foreach (var scene in GetScenesForRender())
+                scene.Render(_batcher);
+        }
 
         _batcher?.Render(Window);
         _batcher?.Clear();
+    }
+
+    internal IReadOnlyList<Scene> GetScenesForUpdate() => GetScenesForPass(includeWhenCovered: scene => scene.UpdatesWhenCovered);
+
+    internal IReadOnlyList<Scene> GetScenesForRender() => GetScenesForPass(includeWhenCovered: scene => scene.RendersWhenCovered);
+
+    private void EnqueueOrApply(StackOperation operation)
+    {
+        if (_inUpdate)
+        {
+            _pendingOperations.Enqueue(operation);
+            return;
+        }
+
+        Apply(operation);
+    }
+
+    private void FlushPendingStackChanges()
+    {
+        while (_pendingOperations.Count > 0)
+            Apply(_pendingOperations.Dequeue());
+    }
+
+    private void Apply(StackOperation operation)
+    {
+        switch (operation)
+        {
+            case PushOperation push:
+                ApplyPush(push.Scene);
+                break;
+            case PopOperation:
+                ApplyPop();
+                break;
+            case ReplaceOperation replace:
+                ApplyReplace(replace.Scene);
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown stack operation: {operation.GetType().Name}");
+        }
+    }
+
+    private void ApplyPush(Scene scene)
+    {
+        _scenes.Add(scene);
+        scene.Begin();
+    }
+
+    private void ApplyPop()
+    {
+        if (_scenes.Count == 0)
+            return;
+
+        var top = _scenes[^1];
+        top.End();
+        _scenes.RemoveAt(_scenes.Count - 1);
     }
 
     private void ApplyReplace(Scene scene)
@@ -121,12 +194,47 @@ public abstract class KitsuneApp : App
         _scenes.Clear();
     }
 
-    private void FlushPendingStackChanges()
+    private void UpdateScenes()
     {
-        if (_pendingReplace is not Scene scene)
-            return;
+        foreach (var scene in GetScenesForUpdate())
+            scene.Update();
+    }
 
-        _pendingReplace = null;
-        ApplyReplace(scene);
+    private IReadOnlyList<Scene> GetScenesForPass(Func<Scene, bool> includeWhenCovered)
+    {
+        if (_scenes.Count == 0)
+            return [];
+
+        var result = new List<Scene>(_scenes.Count);
+
+        for (var i = 0; i < _scenes.Count; i++)
+        {
+            var scene = _scenes[i];
+            if (i == _scenes.Count - 1 || includeWhenCovered(scene))
+                result.Add(scene);
+        }
+
+        return result;
+    }
+
+    private abstract class StackOperation;
+
+    private sealed class PushOperation(Scene scene) : StackOperation
+    {
+        public Scene Scene { get; } = scene;
+    }
+
+    private sealed class PopOperation : StackOperation
+    {
+        public static PopOperation Instance { get; } = new();
+
+        private PopOperation()
+        {
+        }
+    }
+
+    private sealed class ReplaceOperation(Scene scene) : StackOperation
+    {
+        public Scene Scene { get; } = scene;
     }
 }

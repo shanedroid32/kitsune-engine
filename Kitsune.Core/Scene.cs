@@ -16,6 +16,16 @@ public class Scene
     public bool IsActive { get; private set; }
 
     /// <summary>
+    /// Whether this scene receives <see cref="Update"/> while covered by another scene on the stack.
+    /// </summary>
+    public bool UpdatesWhenCovered { get; set; }
+
+    /// <summary>
+    /// Whether this scene receives <see cref="Render"/> while covered by another scene on the stack.
+    /// </summary>
+    public bool RendersWhenCovered { get; set; } = true;
+
+    /// <summary>
     /// The root entities owned by this scene.
     /// </summary>
     public IReadOnlyList<Entity> Entities => _roots;

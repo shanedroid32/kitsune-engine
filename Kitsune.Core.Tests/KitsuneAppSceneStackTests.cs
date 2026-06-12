@@ -125,6 +125,185 @@ public class KitsuneAppSceneStackTests
         Assert.Contains("update", component.Events);
     }
 
+    [Fact]
+    public void Push_Null_Throws()
+    {
+        var app = new TestKitsuneApp();
+
+        Assert.Throws<ArgumentNullException>(() => app.Push(null!));
+    }
+
+    [Fact]
+    public void Push_KeepsCoveredSceneBegun()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+
+        app.Replace(level);
+        app.Push(pause);
+
+        Assert.True(level.IsActive);
+        Assert.True(pause.IsActive);
+        Assert.Equal([level, pause], app.Scenes);
+        Assert.Same(pause, app.Scene);
+    }
+
+    [Fact]
+    public void Push_FrozenCoveredScene_SkipsUpdate()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+        var levelEntity = new Entity();
+        var pauseEntity = new Entity();
+        var levelComponent = new RecordingComponent();
+        var pauseComponent = new RecordingComponent();
+
+        levelEntity.Add(levelComponent);
+        pauseEntity.Add(pauseComponent);
+        level.Add(levelEntity);
+        pause.Add(pauseEntity);
+        app.Replace(level);
+        app.Push(pause);
+        levelComponent.Events.Clear();
+        pauseComponent.Events.Clear();
+
+        app.RunUpdate();
+
+        Assert.DoesNotContain("update", levelComponent.Events);
+        Assert.Contains("update", pauseComponent.Events);
+    }
+
+    [Fact]
+    public void Push_UpdatesWhenCovered_AllowsCoveredUpdate()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene { UpdatesWhenCovered = true };
+        var pause = new Scene();
+        var levelEntity = new Entity();
+        var pauseEntity = new Entity();
+        var levelComponent = new RecordingComponent();
+        var pauseComponent = new RecordingComponent();
+
+        levelEntity.Add(levelComponent);
+        pauseEntity.Add(pauseComponent);
+        level.Add(levelEntity);
+        pause.Add(pauseEntity);
+        app.Replace(level);
+        app.Push(pause);
+        levelComponent.Events.Clear();
+        pauseComponent.Events.Clear();
+
+        app.RunUpdate();
+
+        Assert.Contains("update", levelComponent.Events);
+        Assert.Contains("update", pauseComponent.Events);
+    }
+
+    [Fact]
+    public void Pop_ResumesCoveredSceneUpdate()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+        var levelEntity = new Entity();
+        var levelComponent = new RecordingComponent();
+
+        levelEntity.Add(levelComponent);
+        level.Add(levelEntity);
+        app.Replace(level);
+        app.Push(pause);
+        app.Pop();
+        levelComponent.Events.Clear();
+
+        app.RunUpdate();
+
+        Assert.Contains("update", levelComponent.Events);
+        Assert.False(pause.IsActive);
+        Assert.Same(level, app.Scene);
+    }
+
+    [Fact]
+    public void Pop_EmptyStack_IsNoOp()
+    {
+        var app = new TestKitsuneApp();
+
+        app.Pop();
+
+        Assert.Null(app.Scene);
+        Assert.Empty(app.Scenes);
+    }
+
+    [Fact]
+    public void Push_DuringUpdate_IsDeferredUntilAfterUpdate()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+        var entity = new Entity();
+
+        entity.Add(new DeferPushComponent(app, pause));
+        level.Add(entity);
+        app.Replace(level);
+
+        app.RunUpdate();
+
+        Assert.Equal([level, pause], app.Scenes);
+        Assert.Same(pause, app.Scene);
+    }
+
+    [Fact]
+    public void Push_DuringUpdate_DoesNotUpdateNewTopUntilNextFrame()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+        var entity = new Entity();
+        var pauseEntity = new Entity();
+        var pauseComponent = new RecordingComponent();
+
+        entity.Add(new DeferPushComponent(app, pause));
+        level.Add(entity);
+        pauseEntity.Add(pauseComponent);
+        pause.Add(pauseEntity);
+        app.Replace(level);
+
+        app.RunUpdate();
+
+        Assert.DoesNotContain("update", pauseComponent.Events);
+
+        app.RunUpdate();
+
+        Assert.Contains("update", pauseComponent.Events);
+    }
+
+    [Fact]
+    public void RenderStack_IncludesCoveredScene_ByDefault()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+
+        app.Replace(level);
+        app.Push(pause);
+
+        Assert.Equal([level, pause], app.GetScenesForRender());
+    }
+
+    [Fact]
+    public void RenderStack_SkipsCoveredScene_WhenRendersWhenCoveredFalse()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene { RendersWhenCovered = false };
+        var pause = new Scene();
+
+        app.Replace(level);
+        app.Push(pause);
+
+        Assert.Equal([pause], app.GetScenesForRender());
+    }
+
     private sealed class TestKitsuneApp : Kitsune.Core.KitsuneApp
     {
         public TestKitsuneApp() : base("Test", 1, 1) { }
@@ -146,5 +325,10 @@ public class KitsuneAppSceneStackTests
     private sealed class DeferReplaceComponent(Kitsune.Core.KitsuneApp app, Scene next) : Component
     {
         public override void Update() => app.Replace(next);
+    }
+
+    private sealed class DeferPushComponent(Kitsune.Core.KitsuneApp app, Scene next) : Component
+    {
+        public override void Update() => app.Push(next);
     }
 }

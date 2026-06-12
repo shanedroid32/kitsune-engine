@@ -7,13 +7,15 @@ using var game = new PlatformerDemoApp();
 game.Run();
 
 /// <summary>
-/// One-screen Platformer Bridge demo — forgiveness-friendly gaps, ledges, and platforms.
+/// One-screen Platformer Bridge demo — zoned layout teaching forgiveness, directional platforms, and kinematic hazards.
 /// </summary>
 sealed class PlatformerDemoApp : KitsuneApp
 {
     internal static Input? GameInput { get; private set; }
 
     internal static float DeltaTime { get; private set; }
+
+    private static readonly Vector2 SpawnPosition = new(72, 468);
 
     public PlatformerDemoApp() : base("Kitsune Platformer Demo", 960, 540)
     {
@@ -44,40 +46,51 @@ sealed class PlatformerDemoApp : KitsuneApp
 
         AddSolid(scene, new Vector2(0, 0), new Vector2(40, 540));
         AddSolid(scene, new Vector2(920, 0), new Vector2(40, 540));
-
-        // Main floor with a gap (jump buffer — press jump before landing on the right side).
-        AddSolid(scene, new Vector2(40, 500), new Vector2(220, 40));
-        AddSolid(scene, new Vector2(380, 500), new Vector2(540, 40));
-
-        // One-way over the gap — jump up through from below; land when falling onto it.
-        AddOneWay(scene, new Vector2(270, 468), new Vector2(80, 12));
-
-        // Safety floor — keeps missed jumps inside the play area.
         AddSolid(scene, new Vector2(40, 528), new Vector2(840, 12));
 
-        // Walk-off ledge (coyote time — jump shortly after leaving the right edge).
-        AddSolid(scene, new Vector2(80, 448), new Vector2(180, 20), new Color(0.42f, 0.44f, 0.52f, 1f));
+        // Zone 1 — Spawn & coyote (wide floor, walk-off ledge with room to react).
+        AddSolid(scene, new Vector2(40, 500), new Vector2(200, 40));
+        AddSolid(scene, new Vector2(56, 448), new Vector2(150, 20), new Color(0.42f, 0.44f, 0.52f, 1f));
 
-        // Trigger zone — walk through without blocking (player tints while inside).
-        AddTriggerZone(scene, new Vector2(300, 468), new Vector2(60, 32));
+        // Zone 2 — Jump buffer (120px gap; press jump before the right-hand floor).
+        AddSolid(scene, new Vector2(360, 500), new Vector2(220, 40));
 
-        // Jump-through platform — hold S to drop down through while standing on it.
-        AddJumpThrough(scene, new Vector2(420, 380), new Vector2(140, 16));
+        // Zone 3 — Trigger (open floor on the left, away from the gap lane).
+        AddTriggerZone(scene, new Vector2(96, 464), new Vector2(88, 36));
 
-        // Elevated platforms on the right side of the gap.
-        AddSolid(scene, new Vector2(420, 400), new Vector2(160, 20), new Color(0.40f, 0.43f, 0.50f, 1f));
-        AddSolid(scene, new Vector2(620, 360), new Vector2(140, 20), new Color(0.38f, 0.41f, 0.48f, 1f));
+        // Zone 4 — One-way (optional upper crossing above the gap; rise through from the pit).
+        AddOneWay(scene, new Vector2(248, 456), new Vector2(88, 12));
 
-        // Moving platform — ride it, then jump to feel lift momentum (registered before player).
-        AddMovingPlatform(scene, new Vector2(260, 500), new Vector2(360, 500), 70f);
+        // Zone 5 — Jump-through terrace (cyan; 100px+ clear below before the floor).
+        AddJumpThrough(scene, new Vector2(400, 368), new Vector2(160, 16));
+        AddSolid(scene, new Vector2(360, 500), new Vector2(140, 40));
+
+        // Zone 6 — Momentum storage (pit between mover and island; jump off at the right end).
+        AddSolid(scene, new Vector2(608, 500), new Vector2(100, 40));
+        AddMovingPlatform(scene, new Vector2(140, 500), new Vector2(420, 500), 120f, width: 88);
+
+        // Zone 7 — Crusher alcove (ride the lift up; jump off before the red lip or respawn).
+        AddSolid(scene, new Vector2(660, 396), new Vector2(120, 20), new Color(0.40f, 0.43f, 0.50f, 1f));
+        AddSolid(scene, new Vector2(668, 256), new Vector2(12, 160));
+        AddSolid(scene, new Vector2(760, 256), new Vector2(12, 160));
+        AddSolid(scene, new Vector2(668, 256), new Vector2(104, 20), new Color(0.72f, 0.32f, 0.28f, 1f));
+        AddRisingPlatform(scene, new Vector2(676, 440), new Vector2(676, 284), 52f, width: 72);
 
         var player = new Entity
         {
-            Position = new Vector2(80, 468),
+            Position = SpawnPosition,
             Depth = 10,
         };
         player.Add(new Hitbox(32, 32));
-        player.Add(new Actor());
+        var actor = new Actor
+        {
+            OnSquish = () =>
+            {
+                player.Position = SpawnPosition;
+                return true;
+            },
+        };
+        player.Add(actor);
         player.Add(new WasdDriver());
         player.Add(new PlatformerBody
         {
@@ -94,14 +107,14 @@ sealed class PlatformerDemoApp : KitsuneApp
         return scene;
     }
 
-    private static void AddMovingPlatform(Scene scene, Vector2 start, Vector2 end, float speed)
+    private static void AddMovingPlatform(Scene scene, Vector2 start, Vector2 end, float speed, float width = 80f)
     {
         var platform = new Entity
         {
             Position = start,
             Depth = 2,
         };
-        platform.Add(new Hitbox(80, 20));
+        platform.Add(new Hitbox(width, 20));
         platform.Add(new Solid());
         platform.Add(new KinematicSolid
         {
@@ -109,8 +122,27 @@ sealed class PlatformerDemoApp : KitsuneApp
             Speed = speed,
             DeltaTimeSource = () => DeltaTime,
         });
-        platform.Add(new RectSprite(80, 20, new Color(0.55f, 0.65f, 0.78f, 1f)));
+        platform.Add(new RectSprite(width, 20, new Color(0.55f, 0.65f, 0.78f, 1f)));
         scene.Add(platform);
+    }
+
+    private static void AddRisingPlatform(Scene scene, Vector2 start, Vector2 end, float speed, float width = 72f)
+    {
+        var lift = new Entity
+        {
+            Position = start,
+            Depth = 4,
+        };
+        lift.Add(new Hitbox(width, 20));
+        lift.Add(new Solid());
+        lift.Add(new KinematicSolid
+        {
+            EndPosition = end,
+            Speed = speed,
+            DeltaTimeSource = () => DeltaTime,
+        });
+        lift.Add(new RectSprite(width, 20, new Color(0.58f, 0.58f, 0.62f, 1f)));
+        scene.Add(lift);
     }
 
     private static void AddSolid(Scene scene, Vector2 position, Vector2 size) =>

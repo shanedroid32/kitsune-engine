@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - **PlatformerBody** — kinematic carry removed; riding actors move with `KinematicSolid.Step`
+- **PlatformerDemo** — zoned one-screen layout with crusher alcove, momentum-storage gap, and respawn on squish
 
 ### Fixed
 

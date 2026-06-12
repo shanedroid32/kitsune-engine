@@ -35,7 +35,7 @@ Use WASD and Space to move the orange player (A/D walk, Space/W jump). Red and b
 dotnet run --project Examples/PlatformerDemo
 ```
 
-Use **A/D** to walk, **Space** or **W** to jump, and **S** to drop through the cyan jump-through platform. Try the walk-off ledge (coyote time), the floor gap (jump buffer), the orange one-way over the gap, and jump off the blue moving platform (lift momentum).
+Use **A/D** to walk, **Space** or **W** to jump, and **S** to drop through cyan jump-through platforms. The level is laid out in zones left-to-right: coyote ledge, jump-buffer gap, one-way crossing, jump-through terrace, a blue mover with a momentum-storage gap to the island, and a rising crusher alcove (red lip — jump off or respawn).
 
 ## Project layout
 

@@ -59,6 +59,9 @@ sealed class PlatformerDemoApp : KitsuneApp
         AddSolid(scene, new Vector2(420, 400), new Vector2(160, 20), new Color(0.40f, 0.43f, 0.50f, 1f));
         AddSolid(scene, new Vector2(620, 360), new Vector2(140, 20), new Color(0.38f, 0.41f, 0.48f, 1f));
 
+        // Moving platform (registered before player so KinematicSolid updates first each frame).
+        AddMovingPlatform(scene, new Vector2(260, 468), new Vector2(360, 468), 70f);
+
         var player = new Entity
         {
             Position = new Vector2(80, 468),
@@ -78,6 +81,25 @@ sealed class PlatformerDemoApp : KitsuneApp
         scene.Tags.Register(player, "player");
 
         return scene;
+    }
+
+    private static void AddMovingPlatform(Scene scene, Vector2 start, Vector2 end, float speed)
+    {
+        var platform = new Entity
+        {
+            Position = start,
+            Depth = 2,
+        };
+        platform.Add(new Hitbox(80, 20));
+        platform.Add(new Solid());
+        platform.Add(new KinematicSolid
+        {
+            EndPosition = end,
+            Speed = speed,
+            DeltaTimeSource = () => DeltaTime,
+        });
+        platform.Add(new RectSprite(80, 20, new Color(0.55f, 0.65f, 0.78f, 1f)));
+        scene.Add(platform);
     }
 
     private static void AddSolid(Scene scene, Vector2 position, Vector2 size) =>

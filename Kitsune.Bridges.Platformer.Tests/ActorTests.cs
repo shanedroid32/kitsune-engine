@@ -95,6 +95,31 @@ public class ActorTests
     }
 
     [Fact]
+    public void MoveX_BlockedByKinematicSolidMidPath()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(40, 0) };
+        platform.Add(new Hitbox(32, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(120, 0), Speed = 60f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var (player, actor, _) = AddActor(scene, new Vector2(0, 0));
+        scene.Begin();
+
+        for (var i = 0; i < 24; i++)
+            mover.Step(1f / 60f);
+
+        Assert.Equal(64f, platform.Position.X);
+
+        var moved = actor.MoveX(100f);
+
+        Assert.Equal(32f, moved);
+        Assert.Equal(32f, player.Position.X);
+    }
+
+    [Fact]
     public void MoveX_ThrowsWhenEntityHasNoHitbox()
     {
         var scene = new Scene();

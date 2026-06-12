@@ -35,7 +35,7 @@ Use WASD and Space to move the orange player (A/D walk, Space/W jump). Red and b
 dotnet run --project Examples/PlatformerDemo
 ```
 
-Use **A/D** to walk and **Space** or **W** to jump. Try the walk-off ledge on the left (coyote time) and the floor gap (jump buffer).
+Use **A/D** to walk and **Space** or **W** to jump. Try the walk-off ledge on the left (coyote time), the floor gap (jump buffer), and the blue moving platform on the main floor.
 
 ## Project layout
 

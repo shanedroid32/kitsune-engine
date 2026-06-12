@@ -7,6 +7,14 @@ namespace Kitsune.Bridges.Platformer;
 /// Moves the owning entity along a ping-pong path between its spawn position and <see cref="EndPosition"/>.
 /// Intended for use on entities that also have <see cref="Solid"/>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Simulation order: <see cref="Scene"/> updates root entities in registration order; each entity
+/// updates components in add order. Register moving solid entities <em>before</em> actors that
+/// should collide with them so <see cref="Update"/> advances the platform before
+/// <see cref="Actor"/> / <see cref="PlatformerBody"/> run on the same frame.
+/// </para>
+/// </remarks>
 public sealed class KinematicSolid : Component
 {
     /// <summary>

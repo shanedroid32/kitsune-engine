@@ -67,12 +67,11 @@ public sealed class PlatformerBody : Component
         var verticalMove = _verticalVelocity * deltaTime;
         var moved = actor.MoveY(verticalMove);
 
-        if (verticalMove > 0f && moved > 0f && moved + 0.001f < verticalMove)
-            _verticalVelocity = 0f;
-        else if (verticalMove < 0f && moved > 0f && moved + 0.001f < MathF.Abs(verticalMove))
+        var stepsRequested = (int)MathF.Floor(MathF.Abs(verticalMove));
+        if (stepsRequested > 0 && moved < stepsRequested)
             _verticalVelocity = 0f;
 
-        IsGrounded = ProbeGrounded(actor);
+        IsGrounded = _verticalVelocity < 0f ? false : ProbeGrounded(actor);
 
         if (IsGrounded && _verticalVelocity > 0f)
             _verticalVelocity = 0f;

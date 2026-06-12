@@ -55,7 +55,7 @@ sealed class CoreDemoApp : KitsuneApp
         };
         player.Add(new Hitbox(32, 32));
         player.Add(new Actor());
-        player.Add(new ArrowKeyDriver());
+        player.Add(new WasdDriver());
         player.Add(new PlatformerBody { DeltaTimeSource = () => DeltaTime });
         player.Add(new RectSprite(32, 32, new Color(0.95f, 0.55f, 0.25f, 1f)));
         scene.Add(player);
@@ -109,9 +109,9 @@ sealed class RectSprite(float width, float height, Color color) : Component
 }
 
 /// <summary>
-/// Reads arrow keys — horizontal <see cref="Actor"/> movement and jump requests on <see cref="PlatformerBody"/>.
+/// WASD movement and Space/W jump for the CoreDemo player.
 /// </summary>
-sealed class ArrowKeyDriver : Component
+sealed class WasdDriver : Component
 {
     private const float Speed = 220f;
 
@@ -127,13 +127,13 @@ sealed class ArrowKeyDriver : Component
 
         var keyboard = CoreDemoApp.GameInput.Keyboard;
 
-        if (keyboard.Pressed(Keys.Up) || keyboard.Pressed(Keys.Space))
+        if (keyboard.Pressed(Keys.Space) || keyboard.Pressed(Keys.W))
             body.JumpRequested = true;
 
         var moveX = 0f;
-        if (keyboard.Down(Keys.Left))
+        if (keyboard.Down(Keys.A))
             moveX -= 1f;
-        if (keyboard.Down(Keys.Right))
+        if (keyboard.Down(Keys.D))
             moveX += 1f;
 
         if (moveX != 0f)

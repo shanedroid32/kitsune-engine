@@ -15,10 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - **PlatformerBody** — lower default gravity/jump speeds; CoreDemo spawns on floor with input before physics
-
-### Changed
-
+- **PlatformerBody** — airborne while rising (`IsGrounded` false when moving up)
+- **CoreDemo** — WASD + Space/W controls (replaces arrow keys)
 - **CoreDemo** — player movement uses Platformer Bridge `Actor`/`Solid` instead of inline collision logic
+
+### Fixed
+
+- **PlatformerBody** — jump velocity no longer zeroed by fractional pixel-step rounding (only on solid collision)
 
 ## [0.1.1] - 2026-06-12
 

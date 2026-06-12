@@ -38,6 +38,27 @@ public class PlatformerBodyTests
     }
 
     [Fact]
+    public void Simulate_JumpReachesMeaningfulHeight()
+    {
+        var scene = new Scene();
+        var (entity, body, _) = AddBody(scene, new Vector2(0, 16));
+        AddSolidFloor(scene, new Vector2(0, 48), 64, 32);
+        scene.Begin();
+
+        for (var i = 0; i < 120; i++)
+            body.Simulate(1f / 60f);
+
+        var groundedY = entity.Position.Y;
+
+        body.JumpRequested = true;
+        for (var i = 0; i < 20; i++)
+            body.Simulate(1f / 60f);
+
+        Assert.True(entity.Position.Y < groundedY - 15f);
+        Assert.False(body.IsGrounded);
+    }
+
+    [Fact]
     public void Simulate_JumpClearsGroundBriefly()
     {
         var scene = new Scene();

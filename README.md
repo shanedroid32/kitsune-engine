@@ -27,7 +27,7 @@ dotnet run --project Examples/HelloWorld
 dotnet run --project Examples/CoreDemo
 ```
 
-Use arrow keys to move the orange player. Red and blue rectangles demonstrate depth ordering (red draws on top).
+Use WASD and Space to move the orange player (A/D walk, Space/W jump). Red and blue rectangles demonstrate depth ordering (red draws on top).
 
 ## Project layout
 

@@ -6,16 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-12
+
 ### Added
 
-- **KitsuneApp** — scene stack foundation with `Replace(Scene)`; read-only `Scene` (top) and `Scenes` view (ADR-0025)
-- **KitsuneApp** — `Push(Scene)` and `Pop()` overlay stack with deferred FIFO application during Update
+- **KitsuneApp** — LIFO scene stack with `Replace(Scene)`, `Push(Scene)`, and `Pop()`; read-only `Scene` (top) and `Scenes` view (ADR-0025)
+- **KitsuneApp** — deferred FIFO stack changes during Update; `OnSceneTransition` hook after each applied operation
 - **Scene** — `UpdatesWhenCovered` and `RendersWhenCovered` for suspended covered scenes
-- **KitsuneApp** — `OnSceneTransition` hook after each applied Push, Pop, or Replace
 
 ### Changed
 
 - **KitsuneApp** — `Scene` property is read-only; use `Replace` instead of assignment (breaking)
+- **Examples** — demos use `Replace(BuildScene())` instead of `Scene = …`
 
 ## [0.3.1] - 2026-06-12
 

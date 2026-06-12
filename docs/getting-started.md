@@ -46,7 +46,7 @@ Add project references to the packages you need:
 <ProjectReference Include="path/to/Kitsune.Bridges.Platformer/Kitsune.Bridges.Platformer.csproj" />
 ```
 
-Subclass `KitsuneApp`, assign a `Scene`, and compose entities with Core and Bridge components:
+Subclass `KitsuneApp`, load a scene with `Replace`, and compose entities with Core and Bridge components:
 
 ```csharp
 using Kitsune.Bridges.Platformer;
@@ -62,14 +62,21 @@ public sealed class MyGame : KitsuneApp
         player.Add(new Actor());
         player.Add(new PlatformerBody());
         scene.Add(player);
-        Scene = scene;
+        Replace(scene);
     }
 }
 ```
 
-`KitsuneApp` wires Foster's `Startup` / `Update` / `Render` / `Shutdown` to the active scene automatically.
+`KitsuneApp` owns a scene stack and wires Foster's loop to it:
 
-## NuGet (0.3.1)
+- **`Replace(scene)`** — end every scene on the stack and make one scene the sole top (level loads, game over → menu)
+- **`Push(scene)`** / **`Pop()`** — overlay without tearing down covered scenes (pause menus); changes during `Update` apply after that pass
+- **`Scene`** — read-only handle to the top scene; **`Scenes`** — read-only bottom-to-top stack view
+- **`OnSceneTransition`** — override to reset input, play audio, or persist state after each stack change
+
+Covered scenes stay begun but frozen unless `UpdatesWhenCovered` is set; they render underneath overlays by default (`RendersWhenCovered`).
+
+## NuGet (0.4.0)
 
 Packages are versioned `0.x` during active development. When published to [nuget.org](https://www.nuget.org/packages/Kitsune.Core):
 

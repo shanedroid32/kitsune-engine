@@ -124,6 +124,15 @@ public abstract class KitsuneApp : App
         _batcher?.Clear();
     }
 
+    /// <summary>
+    /// Called after each applied <see cref="Push"/>, <see cref="Pop"/>, or <see cref="Replace"/> stack operation.
+    /// </summary>
+    /// <param name="previousTop">The top scene before the operation, or <see langword="null"/> when the stack was empty.</param>
+    /// <param name="newTop">The top scene after the operation, or <see langword="null"/> when the stack is empty.</param>
+    protected virtual void OnSceneTransition(Scene? previousTop, Scene? newTop)
+    {
+    }
+
     internal IReadOnlyList<Scene> GetScenesForUpdate() => GetScenesForPass(includeWhenCovered: scene => scene.UpdatesWhenCovered);
 
     internal IReadOnlyList<Scene> GetScenesForRender() => GetScenesForPass(includeWhenCovered: scene => scene.RendersWhenCovered);
@@ -165,8 +174,10 @@ public abstract class KitsuneApp : App
 
     private void ApplyPush(Scene scene)
     {
+        var previousTop = Scene;
         _scenes.Add(scene);
         scene.Begin();
+        OnSceneTransition(previousTop, scene);
     }
 
     private void ApplyPop()
@@ -174,16 +185,19 @@ public abstract class KitsuneApp : App
         if (_scenes.Count == 0)
             return;
 
-        var top = _scenes[^1];
-        top.End();
+        var previousTop = _scenes[^1];
+        previousTop.End();
         _scenes.RemoveAt(_scenes.Count - 1);
+        OnSceneTransition(previousTop, Scene);
     }
 
     private void ApplyReplace(Scene scene)
     {
+        var previousTop = Scene;
         EndAllScenes();
         _scenes.Add(scene);
         scene.Begin();
+        OnSceneTransition(previousTop, scene);
     }
 
     private void EndAllScenes()

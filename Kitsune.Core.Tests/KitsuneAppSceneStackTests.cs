@@ -304,11 +304,114 @@ public class KitsuneAppSceneStackTests
         Assert.Equal([pause], app.GetScenesForRender());
     }
 
+    [Fact]
+    public void Replace_MultiSceneStack_EndsAllScenes()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+        var title = new Scene();
+
+        app.Replace(level);
+        app.Push(pause);
+        app.Replace(title);
+
+        Assert.False(level.IsActive);
+        Assert.False(pause.IsActive);
+        Assert.True(title.IsActive);
+        Assert.Same(title, app.Scene);
+        Assert.Single(app.Scenes);
+    }
+
+    [Fact]
+    public void OnSceneTransition_Replace_ReportsPreviousTopBeforeWipe()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+        var title = new Scene();
+
+        app.Replace(level);
+        app.Push(pause);
+        app.Transitions.Clear();
+        app.Replace(title);
+
+        Assert.Equal([(pause, title)], app.Transitions);
+    }
+
+    [Fact]
+    public void OnSceneTransition_Push_ReportsPreviousAndNewTop()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+
+        app.Replace(level);
+        app.Transitions.Clear();
+        app.Push(pause);
+
+        Assert.Equal([(level, pause)], app.Transitions);
+    }
+
+    [Fact]
+    public void OnSceneTransition_Pop_ReportsPreviousAndNewTop()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+
+        app.Replace(level);
+        app.Push(pause);
+        app.Transitions.Clear();
+        app.Pop();
+
+        Assert.Equal([(pause, level)], app.Transitions);
+    }
+
+    [Fact]
+    public void Pop_Empty_DoesNotFireOnSceneTransition()
+    {
+        var app = new TestKitsuneApp();
+
+        app.Pop();
+
+        Assert.Empty(app.Transitions);
+    }
+
+    [Fact]
+    public void PushThenPop_SameFrame_RestoresPriorTopWithoutSpuriousBegin()
+    {
+        var app = new TestKitsuneApp();
+        var level = new Scene();
+        var pause = new Scene();
+        var entity = new Entity();
+        var component = new RecordingComponent();
+
+        entity.Add(new DeferPushThenPopComponent(app, pause));
+        entity.Add(component);
+        level.Add(entity);
+        app.Replace(level);
+        app.Transitions.Clear();
+
+        app.RunUpdate();
+
+        Assert.Same(level, app.Scene);
+        Assert.True(level.IsActive);
+        Assert.False(pause.IsActive);
+        Assert.Equal(1, component.Events.Count(e => e == "added"));
+        Assert.Equal([(level, pause), (pause, level)], app.Transitions);
+    }
+
     private sealed class TestKitsuneApp : Kitsune.Core.KitsuneApp
     {
         public TestKitsuneApp() : base("Test", 1, 1) { }
 
+        public List<(Scene? Previous, Scene? New)> Transitions { get; } = [];
+
         public void RunUpdate() => Update();
+
+        protected override void OnSceneTransition(Scene? previousTop, Scene? newTop) =>
+            Transitions.Add((previousTop, newTop));
     }
 
     private sealed class RecordingComponent : Component
@@ -330,5 +433,14 @@ public class KitsuneAppSceneStackTests
     private sealed class DeferPushComponent(Kitsune.Core.KitsuneApp app, Scene next) : Component
     {
         public override void Update() => app.Push(next);
+    }
+
+    private sealed class DeferPushThenPopComponent(Kitsune.Core.KitsuneApp app, Scene pause) : Component
+    {
+        public override void Update()
+        {
+            app.Push(pause);
+            app.Pop();
+        }
     }
 }

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **KitsuneApp** — scene stack foundation with `Replace(Scene)`; read-only `Scene` (top) and `Scenes` view (ADR-0025)
+
+### Changed
+
+- **KitsuneApp** — `Scene` property is read-only; use `Replace` instead of assignment (breaking)
+
 ## [0.3.1] - 2026-06-12
 
 ### Added

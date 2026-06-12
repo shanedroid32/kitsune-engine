@@ -18,7 +18,7 @@ sealed class CoreDemoApp : KitsuneApp
 
     public CoreDemoApp() : base("Kitsune Core Demo", 960, 540)
     {
-        Scene = BuildScene();
+        Replace(BuildScene());
     }
 
     protected override void Startup()

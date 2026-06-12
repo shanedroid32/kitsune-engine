@@ -19,7 +19,7 @@ sealed class PlatformerDemoApp : KitsuneApp
 
     public PlatformerDemoApp() : base("Kitsune Platformer Demo", 960, 540)
     {
-        Scene = BuildScene();
+        Replace(BuildScene());
     }
 
     protected override void Startup()

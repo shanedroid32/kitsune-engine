@@ -12,7 +12,7 @@ sealed class HelloWorldApp : KitsuneApp
 {
     public HelloWorldApp() : base("Hello, world!")
     {
-        Scene = new Scene();
+        Replace(new Scene());
     }
 
     protected override void Render()

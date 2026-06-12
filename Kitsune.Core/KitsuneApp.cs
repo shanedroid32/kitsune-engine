@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Foster.Framework;
 
 namespace Kitsune.Core;
@@ -7,12 +8,20 @@ namespace Kitsune.Core;
 /// </summary>
 public abstract class KitsuneApp : App
 {
+    private readonly List<Scene> _scenes = [];
     private Batcher? _batcher;
+    private bool _inUpdate;
+    private Scene? _pendingReplace;
 
     /// <summary>
-    /// The currently active scene, if any.
+    /// The scene at the top of the stack, if any.
     /// </summary>
-    public Scene? Scene { get; set; }
+    public Scene? Scene => _scenes.Count > 0 ? _scenes[^1] : null;
+
+    /// <summary>
+    /// The scenes on the stack from bottom to top.
+    /// </summary>
+    public IReadOnlyList<Scene> Scenes => new ReadOnlyCollection<Scene>(_scenes);
 
     /// <summary>
     /// The draw batcher created during startup, or <see langword="null"/> before <see cref="Startup"/>.
@@ -36,17 +45,35 @@ public abstract class KitsuneApp : App
     {
     }
 
+    /// <summary>
+    /// Ends every scene on the stack and leaves <paramref name="scene"/> as the sole top scene.
+    /// Applies immediately outside <see cref="Update"/>; deferred until after the current update pass when called during <see cref="Update"/>.
+    /// </summary>
+    /// <param name="scene">The scene to make active.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="scene"/> is null.</exception>
+    public void Replace(Scene scene)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+
+        if (_inUpdate)
+        {
+            _pendingReplace = scene;
+            return;
+        }
+
+        ApplyReplace(scene);
+    }
+
     /// <inheritdoc />
     protected override void Startup()
     {
         _batcher = new(GraphicsDevice);
-        Scene?.Begin();
     }
 
     /// <inheritdoc />
     protected override void Shutdown()
     {
-        Scene?.End();
+        EndAllScenes();
         _batcher?.Dispose();
         _batcher = null;
     }
@@ -54,7 +81,17 @@ public abstract class KitsuneApp : App
     /// <inheritdoc />
     protected override void Update()
     {
-        Scene?.Update();
+        _inUpdate = true;
+
+        try
+        {
+            Scene?.Update();
+        }
+        finally
+        {
+            _inUpdate = false;
+            FlushPendingStackChanges();
+        }
     }
 
     /// <inheritdoc />
@@ -67,5 +104,29 @@ public abstract class KitsuneApp : App
 
         _batcher?.Render(Window);
         _batcher?.Clear();
+    }
+
+    private void ApplyReplace(Scene scene)
+    {
+        EndAllScenes();
+        _scenes.Add(scene);
+        scene.Begin();
+    }
+
+    private void EndAllScenes()
+    {
+        for (var i = _scenes.Count - 1; i >= 0; i--)
+            _scenes[i].End();
+
+        _scenes.Clear();
+    }
+
+    private void FlushPendingStackChanges()
+    {
+        if (_pendingReplace is not Scene scene)
+            return;
+
+        _pendingReplace = null;
+        ApplyReplace(scene);
     }
 }

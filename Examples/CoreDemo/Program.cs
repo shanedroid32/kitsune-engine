@@ -50,14 +50,13 @@ sealed class CoreDemoApp : KitsuneApp
 
         var player = new Entity
         {
-            Position = new Vector2(120, 420),
+            Position = new Vector2(120, 468),
             Depth = 10,
         };
         player.Add(new Hitbox(32, 32));
         player.Add(new Actor());
-        var body = new PlatformerBody { DeltaTimeSource = () => DeltaTime };
-        player.Add(body);
         player.Add(new ArrowKeyDriver());
+        player.Add(new PlatformerBody { DeltaTimeSource = () => DeltaTime });
         player.Add(new RectSprite(32, 32, new Color(0.95f, 0.55f, 0.25f, 1f)));
         scene.Add(player);
         scene.Tags.Register(player, "player");

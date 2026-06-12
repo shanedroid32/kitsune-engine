@@ -29,6 +29,14 @@ dotnet run --project Examples/CoreDemo
 
 Use WASD and Space to move the orange player (A/D walk, Space/W jump). Red and blue rectangles demonstrate depth ordering (red draws on top).
 
+**PlatformerDemo** — Platformer Bridge playground (coyote time, jump buffer, platforms):
+
+```bash
+dotnet run --project Examples/PlatformerDemo
+```
+
+Use **A/D** to walk and **Space** or **W** to jump. Try the walk-off ledge on the left (coyote time) and the floor gap (jump buffer).
+
 ## Project layout
 
 ```
@@ -39,7 +47,8 @@ kitsune-engine/
 ├── Kitsune.Core.Tests/           # Unit tests
 ├── Examples/
 │   ├── HelloWorld/               # Foster wiring smoke test
-│   └── CoreDemo/                 # Core feature demo
+│   ├── CoreDemo/                 # Core feature demo
+│   └── PlatformerDemo/           # Platformer Bridge demo level
 ├── docs/                         # Public documentation
 └── kitsune.slnx
 ```

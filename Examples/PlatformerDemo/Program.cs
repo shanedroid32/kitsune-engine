@@ -7,7 +7,7 @@ using var game = new PlatformerDemoApp();
 game.Run();
 
 /// <summary>
-/// Playable shell for the Platformer Bridge — floor, boundaries, and a controllable player.
+/// One-screen Platformer Bridge demo — forgiveness-friendly gaps, ledges, and platforms.
 /// </summary>
 sealed class PlatformerDemoApp : KitsuneApp
 {
@@ -42,13 +42,26 @@ sealed class PlatformerDemoApp : KitsuneApp
     {
         var scene = new Scene();
 
-        AddSolid(scene, new Vector2(0, 500), new Vector2(960, 40));
         AddSolid(scene, new Vector2(0, 0), new Vector2(40, 540));
         AddSolid(scene, new Vector2(920, 0), new Vector2(40, 540));
 
+        // Main floor with a gap (jump buffer — press jump before landing on the right side).
+        AddSolid(scene, new Vector2(40, 500), new Vector2(220, 40));
+        AddSolid(scene, new Vector2(380, 500), new Vector2(540, 40));
+
+        // Safety floor — keeps missed jumps inside the play area.
+        AddSolid(scene, new Vector2(40, 528), new Vector2(840, 12));
+
+        // Walk-off ledge (coyote time — jump shortly after leaving the right edge).
+        AddSolid(scene, new Vector2(80, 448), new Vector2(180, 20), new Color(0.42f, 0.44f, 0.52f, 1f));
+
+        // Elevated platforms on the right side of the gap.
+        AddSolid(scene, new Vector2(420, 400), new Vector2(160, 20), new Color(0.40f, 0.43f, 0.50f, 1f));
+        AddSolid(scene, new Vector2(620, 360), new Vector2(140, 20), new Color(0.38f, 0.41f, 0.48f, 1f));
+
         var player = new Entity
         {
-            Position = new Vector2(120, 468),
+            Position = new Vector2(80, 468),
             Depth = 10,
         };
         player.Add(new Hitbox(32, 32));
@@ -67,7 +80,10 @@ sealed class PlatformerDemoApp : KitsuneApp
         return scene;
     }
 
-    private static void AddSolid(Scene scene, Vector2 position, Vector2 size)
+    private static void AddSolid(Scene scene, Vector2 position, Vector2 size) =>
+        AddSolid(scene, position, size, new Color(0.35f, 0.38f, 0.45f, 1f));
+
+    private static void AddSolid(Scene scene, Vector2 position, Vector2 size, Color color)
     {
         var wall = new Entity
         {
@@ -76,7 +92,7 @@ sealed class PlatformerDemoApp : KitsuneApp
         };
         wall.Add(new Hitbox(size.X, size.Y));
         wall.Add(new Solid());
-        wall.Add(new RectSprite(size.X, size.Y, new Color(0.35f, 0.38f, 0.45f, 1f)));
+        wall.Add(new RectSprite(size.X, size.Y, color));
         scene.Add(wall);
     }
 }

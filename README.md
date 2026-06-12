@@ -2,7 +2,7 @@
 
 Kitsune is a 2D game engine for C# built on [Foster](https://www.nuget.org/packages/FosterFramework). It modernizes proven Monocle-inspired patterns — Scene, Entity, Component, tags, and collision — as layered .NET libraries you can adopt incrementally.
 
-**Kitsune.Core** provides entity hierarchy, single-scene lifecycle, tag queries, axis-aligned hitboxes, and depth-ordered rendering hooks. **Kitsune.Bridges.Platformer** (0.2.0) adds `Solid`, `Actor`, `PlatformerBody`, forgiveness systems, and moving platforms.
+**Kitsune.Core** provides entity hierarchy, single-scene lifecycle, tag queries, axis-aligned hitboxes, and depth-ordered rendering hooks. **Kitsune.Bridges.Platformer** (0.2.1) adds `Solid`, `Actor`, `PlatformerBody`, forgiveness systems, moving platforms, and collision layers.
 
 ## Prerequisites
 

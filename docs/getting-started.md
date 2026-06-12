@@ -69,7 +69,7 @@ public sealed class MyGame : KitsuneApp
 
 `KitsuneApp` wires Foster's `Startup` / `Update` / `Render` / `Shutdown` to the active scene automatically.
 
-## NuGet (0.2.0)
+## NuGet (0.2.1)
 
 Packages are versioned `0.x` during active development. When published to [nuget.org](https://www.nuget.org/packages/Kitsune.Core):
 

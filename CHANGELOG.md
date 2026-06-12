@@ -6,11 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-12
+
 ### Added
 
 - NuGet publish workflow (Trusted Publishing / OIDC) and shared package metadata
 - GitHub issue templates and triage labels
-- This changelog
+- `CHANGELOG.md` and `Directory.Build.props`
+- Pack verification step in CI
+
+### Changed
+
+- Fixed `getting-started.md` and `contributing.md` for public repo root
+- NuGet push steps expand package globs correctly on Windows runners
 
 ## [0.1.0] - 2026-06-11
 

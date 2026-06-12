@@ -1,5 +1,6 @@
 using System.Numerics;
 using Foster.Framework;
+using Kitsune.Bridges.Platformer;
 using Kitsune.Core;
 
 using var game = new CoreDemoApp();
@@ -7,6 +8,7 @@ game.Run();
 
 /// <summary>
 /// Demonstrates Kitsune Core: entities, hitboxes, tags, tracker, and depth ordering.
+/// Movement resolution uses the Platformer Bridge Actor and Solid components.
 /// </summary>
 sealed class CoreDemoApp : KitsuneApp
 {
@@ -52,7 +54,8 @@ sealed class CoreDemoApp : KitsuneApp
             Depth = 10,
         };
         player.Add(new Hitbox(32, 32));
-        player.Add(new PlayerController());
+        player.Add(new Actor());
+        player.Add(new ArrowKeyDriver());
         player.Add(new RectSprite(32, 32, new Color(0.95f, 0.55f, 0.25f, 1f)));
         scene.Add(player);
         scene.Tags.Register(player, "player");
@@ -84,9 +87,9 @@ sealed class CoreDemoApp : KitsuneApp
             Depth = 1,
         };
         wall.Add(new Hitbox(size.X, size.Y));
+        wall.Add(new Solid());
         wall.Add(new RectSprite(size.X, size.Y, new Color(0.35f, 0.38f, 0.45f, 1f)));
         scene.Add(wall);
-        scene.Tags.Register(wall, "wall");
     }
 }
 
@@ -105,15 +108,19 @@ sealed class RectSprite(float width, float height, Color color) : Component
 }
 
 /// <summary>
-/// Arrow-key movement with hitbox collision against tagged walls.
+/// Reads arrow keys and drives <see cref="Actor"/> movement for the demo.
 /// </summary>
-sealed class PlayerController : Component
+sealed class ArrowKeyDriver : Component
 {
     private const float Speed = 220f;
 
     public override void Update()
     {
         if (Entity is null || CoreDemoApp.GameInput is null)
+            return;
+
+        var actor = FindActor();
+        if (actor is null)
             return;
 
         var keyboard = CoreDemoApp.GameInput.Keyboard;
@@ -136,38 +143,18 @@ sealed class PlayerController : Component
 
         move *= Speed * CoreDemoApp.DeltaTime;
 
-        var hitbox = Entity.Components.OfType<Hitbox>().FirstOrDefault();
-        if (hitbox is null)
-        {
-            Entity.Position += move;
-            return;
-        }
-
-        var scene = Entity.Scene;
-        if (scene is null)
-        {
-            Entity.Position += move;
-            return;
-        }
-
-        Entity.Position += new Vector2(move.X, 0);
-        if (CollidesWithWalls(scene, hitbox))
-            Entity.Position -= new Vector2(move.X, 0);
-
-        Entity.Position += new Vector2(0, move.Y);
-        if (CollidesWithWalls(scene, hitbox))
-            Entity.Position -= new Vector2(0, move.Y);
+        actor.MoveX(move.X);
+        actor.MoveY(move.Y);
     }
 
-    private static bool CollidesWithWalls(Scene scene, Hitbox playerHitbox)
+    private Actor? FindActor()
     {
-        foreach (var wall in scene.Tracker.GetEntities("wall"))
+        foreach (var component in Entity!.Components)
         {
-            var wallHitbox = wall.Components.OfType<Hitbox>().FirstOrDefault();
-            if (wallHitbox is not null && Hitbox.Overlaps(playerHitbox, wallHitbox))
-                return true;
+            if (component is Actor actor)
+                return actor;
         }
 
-        return false;
+        return null;
     }
 }

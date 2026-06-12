@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Kitsune.Core** — Scene collision query (`CollideCheck`, `CollideFirst`, `CollideAll`)
 - **Kitsune.Bridges.Platformer** — `Solid` and `Actor` with pixel-step movement resolution
 
+### Changed
+
+- **CoreDemo** — player movement uses Platformer Bridge `Actor`/`Solid` instead of inline collision logic
+
 ## [0.1.1] - 2026-06-12
 
 ### Added

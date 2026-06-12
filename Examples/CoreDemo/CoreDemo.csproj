@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Kitsune.Bridges.Platformer\Kitsune.Bridges.Platformer.csproj" />
     <ProjectReference Include="..\..\Kitsune.Core\Kitsune.Core.csproj" />
   </ItemGroup>
 

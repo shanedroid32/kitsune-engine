@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Kitsune.Bridges.Platformer** — `IDirectionalSolid` for direction-aware solid blocking; `Actor` consults it during movement
+
 ## [0.2.1] - 2026-06-12
 
 ### Added

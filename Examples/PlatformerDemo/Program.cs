@@ -67,12 +67,10 @@ sealed class PlatformerDemoApp : KitsuneApp
 
         // Zone 6 — Momentum storage (pit between mover and island; jump off at the right end).
         AddSolid(scene, new Vector2(608, 500), new Vector2(100, 40));
-        AddMovingPlatform(scene, new Vector2(140, 500), new Vector2(420, 500), 120f, width: 88);
+        AddMovingPlatform(scene, new Vector2(140, 500), new Vector2(420, 500), 120f, width: 60);
 
         // Zone 7 — Crusher alcove (ride the lift up; jump off before the red lip or respawn).
         AddSolid(scene, new Vector2(660, 396), new Vector2(120, 20), new Color(0.40f, 0.43f, 0.50f, 1f));
-        AddSolid(scene, new Vector2(668, 256), new Vector2(12, 160));
-        AddSolid(scene, new Vector2(760, 256), new Vector2(12, 160));
         AddSolid(scene, new Vector2(668, 256), new Vector2(104, 20), new Color(0.72f, 0.32f, 0.28f, 1f));
         AddRisingPlatform(scene, new Vector2(676, 440), new Vector2(676, 284), 52f, width: 72);
 

@@ -21,23 +21,35 @@ Start with **HelloWorld** to confirm Foster windowing works:
 dotnet run --project Examples/HelloWorld
 ```
 
-Then run **CoreDemo** to see Kitsune Core in action — entities, hitbox collision, tag queries via `Tracker`, and depth-ordered rendering:
+**CoreDemo** exercises Kitsune Core — entities, hitbox collision, tag queries via `Tracker`, and depth-ordered rendering:
 
 ```bash
 dotnet run --project Examples/CoreDemo
 ```
 
+Use **A/D** to walk and **Space** or **W** to jump.
+
+**PlatformerDemo** showcases the Platformer Bridge — coyote time, jump buffer, moving platforms, and a one-screen level:
+
+```bash
+dotnet run --project Examples/PlatformerDemo
+```
+
+Controls are the same as CoreDemo (**A/D** walk, **Space** or **W** jump). Try the walk-off ledge, the floor gap, and the blue moving platform.
+
 ## Use Kitsune in your project
 
-Add a project reference to `Kitsune.Core`:
+Add project references to the packages you need:
 
 ```xml
 <ProjectReference Include="path/to/Kitsune.Core/Kitsune.Core.csproj" />
+<ProjectReference Include="path/to/Kitsune.Bridges.Platformer/Kitsune.Bridges.Platformer.csproj" />
 ```
 
-Subclass `KitsuneApp`, assign a `Scene`, and add `Entity` instances with `Component` types:
+Subclass `KitsuneApp`, assign a `Scene`, and compose entities with Core and Bridge components:
 
 ```csharp
+using Kitsune.Bridges.Platformer;
 using Kitsune.Core;
 
 public sealed class MyGame : KitsuneApp
@@ -46,6 +58,9 @@ public sealed class MyGame : KitsuneApp
     {
         var scene = new Scene();
         var player = new Entity { Position = new(100, 100) };
+        player.Add(new Hitbox(32, 32));
+        player.Add(new Actor());
+        player.Add(new PlatformerBody());
         scene.Add(player);
         Scene = scene;
     }
@@ -54,12 +69,13 @@ public sealed class MyGame : KitsuneApp
 
 `KitsuneApp` wires Foster's `Startup` / `Update` / `Render` / `Shutdown` to the active scene automatically.
 
-## NuGet (0.1.0)
+## NuGet (0.2.0)
 
 Packages are versioned `0.x` during active development. When published to [nuget.org](https://www.nuget.org/packages/Kitsune.Core):
 
 ```bash
 dotnet add package Kitsune.Core
+dotnet add package Kitsune.Bridges.Platformer
 ```
 
 See [CHANGELOG.md](../CHANGELOG.md) for release notes.

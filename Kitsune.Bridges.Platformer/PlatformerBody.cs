@@ -174,7 +174,7 @@ public sealed class PlatformerBody : Component
 
         var velocity = displacement / deltaTime;
         _verticalVelocity += velocity.Y;
-        Entity!.Position += new System.Numerics.Vector2(displacement.X, 0f);
+        RequireActor().MoveX(displacement.X);
         _lastRiddenKinematic = null;
     }
 

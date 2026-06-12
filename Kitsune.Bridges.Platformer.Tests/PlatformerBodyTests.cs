@@ -400,6 +400,38 @@ public class PlatformerBodyTests
     }
 
     [Fact]
+    public void Simulate_LiftMomentum_HorizontalBlockedByWall()
+    {
+        var scene = new Scene();
+        var platform = new Entity { Position = new Vector2(0, 48) };
+        platform.Add(new Hitbox(96, 32));
+        platform.Add(new Solid());
+        var mover = new KinematicSolid { EndPosition = new Vector2(60, 48), Speed = 300f };
+        platform.Add(mover);
+        scene.Add(platform);
+
+        var wall = new Entity { Position = new Vector2(32, 16) };
+        wall.Add(new Hitbox(8, 64));
+        wall.Add(new Solid());
+        scene.Add(wall);
+
+        var (player, body, _) = AddBody(scene, new Vector2(0, 16));
+        scene.Begin();
+
+        for (var i = 0; i < 30; i++)
+            body.Simulate(1f / 60f);
+
+        mover.Step(1f / 60f);
+        Assert.True(mover.FrameDisplacement.X > 1f);
+
+        body.JumpRequested = true;
+        body.Simulate(1f / 60f);
+
+        Assert.Equal(0f, player.Position.X);
+        Assert.False(body.IsGrounded);
+    }
+
+    [Fact]
     public void Simulate_LiftMomentum_UnchangedOnStaticGround()
     {
         var scene = new Scene();

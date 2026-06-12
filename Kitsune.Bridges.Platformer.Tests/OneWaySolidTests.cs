@@ -48,6 +48,20 @@ public class OneWaySolidTests
         Assert.Equal(new Vector2(0, 0), entity.Position);
     }
 
+    [Fact]
+    public void Actor_PassesThroughHorizontallyInsideVolume()
+    {
+        var scene = new Scene();
+        var (entity, actor, _) = AddActor(scene, new Vector2(0, 40));
+        AddOneWay(scene, new Vector2(0, 32), 64, 16);
+        scene.Begin();
+
+        var moved = actor.MoveX(24f);
+
+        Assert.Equal(24f, moved);
+        Assert.Equal(new Vector2(24, 40), entity.Position);
+    }
+
     private static (Entity Entity, Actor Actor, Hitbox Hitbox) AddActor(Scene scene, Vector2 position)
     {
         var entity = new Entity { Position = position };

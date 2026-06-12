@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Kitsune.Bridges.Platformer** — `PlatformerBody` for gravity, jumping, and grounded state
 - **PlatformerBody** — coyote time (`CoyoteTimeFrames`, `CoyoteFramesRemaining`)
 - **PlatformerBody** — jump buffer (`JumpBufferFrames`, `JumpBufferFramesRemaining`)
+- **Actor** — `TryCeilingCornerNudge` for one-pixel left/right ceiling corner correction
 
 ### Changed
 

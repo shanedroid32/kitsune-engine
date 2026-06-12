@@ -61,6 +61,40 @@ public class ActorTests
     }
 
     [Fact]
+    public void TryCeilingCornerNudge_SlipsPastPartialCeilingLip()
+    {
+        var scene = new Scene();
+        var (entity, actor, _) = AddActor(scene, new Vector2(0, 18));
+        AddSolidWall(scene, new Vector2(31, 16), 1, 16);
+        scene.Begin();
+
+        Assert.Equal(0f, actor.MoveY(-1f));
+        Assert.Equal(new Vector2(0, 18), entity.Position);
+
+        var nudged = actor.TryCeilingCornerNudge();
+
+        Assert.Equal(-1f, nudged);
+        Assert.Equal(new Vector2(-1, 17), entity.Position);
+    }
+
+    [Fact]
+    public void TryCeilingCornerNudge_DoesNotMoveUnderFullWidthCeiling()
+    {
+        var scene = new Scene();
+        var (entity, actor, _) = AddActor(scene, new Vector2(0, 18));
+        AddSolidWall(scene, new Vector2(0, 16), 32, 16);
+        scene.Begin();
+
+        Assert.Equal(0f, actor.MoveY(-1f));
+        Assert.Equal(new Vector2(0, 18), entity.Position);
+
+        var nudged = actor.TryCeilingCornerNudge();
+
+        Assert.Equal(0f, nudged);
+        Assert.Equal(new Vector2(0, 18), entity.Position);
+    }
+
+    [Fact]
     public void MoveX_ThrowsWhenEntityHasNoHitbox()
     {
         var scene = new Scene();
